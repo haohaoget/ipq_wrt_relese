@@ -68,6 +68,7 @@ if [ -d "feeds/luci/themes/luci-theme-argon" ]; then
   cp -f $GITHUB_WORKSPACE/argon/icon/favicon-32x32.png feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
   cp -f $GITHUB_WORKSPACE/argon/icon/favicon-96x96.png feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
   cp -f $GITHUB_WORKSPACE/argon/icon/ms-icon-144x144.png feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+  echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
 fi
 if [ -d "/feeds/small8/luci-theme-argon" ]; then
   cp -f $GITHUB_WORKSPACE/argon/img/bg1.jpg /feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
@@ -81,4 +82,5 @@ if [ -d "/feeds/small8/luci-theme-argon" ]; then
   cp -f $GITHUB_WORKSPACE/argon/icon/favicon-32x32.png /feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
   cp -f $GITHUB_WORKSPACE/argon/icon/favicon-96x96.png /feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
   cp -f $GITHUB_WORKSPACE/argon/icon/ms-icon-144x144.png /feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+  echo "完成feeds/small8/luci-theme-argon修改主题背景"
 fi
