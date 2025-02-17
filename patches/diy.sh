@@ -29,19 +29,19 @@ git_sparse_clone master https://github.com/openwrt/packages net/tailscale
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
 #$GITHUB_WORKSPACE/N1/preset-clash-core.sh
 
-echo "
-# 插件
-#CONFIG_PACKAGE_luci-theme-design=y
-#CONFIG_PACKAGE_luci-app-mosdns=y
-CONFIG_PACKAGE_luci-app-filemanager=y
-CONFIG_PACKAGE_luci-app-cloudflared=y
-CONFIG_PACKAGE_luci-app-passwall=y
-CONFIG_PACKAGE_luci-app-lucky=y
-CONFIG_PACKAGE_luci-app-nikki=y
-#CONFIG_PACKAGE_luci-app-linkease=y
-CONFIG_PACKAGE_tailscale=y
-#CONFIG_PACKAGE_luci-app-turboacc=y
-" >> .config
+# echo "
+# # 插件
+# #CONFIG_PACKAGE_luci-theme-design=y
+# #CONFIG_PACKAGE_luci-app-mosdns=y
+# CONFIG_PACKAGE_luci-app-filemanager=y
+# CONFIG_PACKAGE_luci-app-cloudflared=y
+# CONFIG_PACKAGE_luci-app-passwall=y
+# CONFIG_PACKAGE_luci-app-lucky=y
+# CONFIG_PACKAGE_luci-app-nikki=y
+# #CONFIG_PACKAGE_luci-app-linkease=y
+# CONFIG_PACKAGE_tailscale=y
+# #CONFIG_PACKAGE_luci-app-turboacc=y
+# " >> .config
 #CONFIG_PACKAGE_luci-app-unblockneteasemusic=y
 
 # 修改默认IP
