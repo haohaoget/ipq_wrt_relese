@@ -10,6 +10,7 @@ Build_Mod=$2
 
 CONFIG_FILE="$BASE_PATH/deconfig/$Dev.config"
 INI_FILE="$BASE_PATH/compilecfg/$Dev.ini"
+DIY_SH="$BASE_PATH/patches/diy.sh"
 
 if [[ ! -f $CONFIG_FILE ]]; then
     echo "Config not found: $CONFIG_FILE"
@@ -41,7 +42,9 @@ $BASE_PATH/update.sh "$REPO_URL" "$REPO_BRANCH" "$BASE_PATH/$BUILD_DIR" "$COMMIT
 
 \cp -f "$CONFIG_FILE" "$BASE_PATH/$BUILD_DIR/.config"
 
+chmod +x $DIY_SH
 cd "$BASE_PATH/$BUILD_DIR"
+$DIY_SH
 make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
