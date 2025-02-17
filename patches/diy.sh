@@ -19,10 +19,10 @@ function git_sparse_clone() {
 #git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
 #git_sparse_clone main https://github.com/kiddin9/kwrt-packages luci-app-unblockneteasemusic UnblockNeteaseMusic
 #git_sparse_clone main https://github.com/kiddin9/kwrt-packages luci-app-linkease linkease linkmount ffmpeg-remux\
-git_sparse_clone main https://github.com/gdy666/luci-app-lucky luci-app-lucky lucky
+#git_sparse_clone main https://github.com/gdy666/luci-app-lucky luci-app-lucky lucky
 git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki nikki
 git_sparse_clone master https://github.com/openwrt/packages net/tailscale
-git_sparse_clone main https://github.com/xiaorouji/openwrt-passwall luci-app-passwall
+#git_sparse_clone main https://github.com/xiaorouji/openwrt-passwall luci-app-passwall
 #git_sparse_clone main https://github.com/xiaorouji/openwrt-passwall-packages v2ray-geodata
 
 # 加入OpenClash核心
