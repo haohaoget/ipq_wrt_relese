@@ -16,7 +16,7 @@ function git_sparse_clone() {
 # Add packages
 #git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 #git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
-git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
+#git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
 #git_sparse_clone main https://github.com/kiddin9/kwrt-packages luci-app-unblockneteasemusic UnblockNeteaseMusic
 #git_sparse_clone main https://github.com/kiddin9/kwrt-packages luci-app-linkease linkease linkmount ffmpeg-remux\
 git_sparse_clone main https://github.com/gdy666/luci-app-lucky luci-app-lucky lucky
@@ -45,13 +45,14 @@ CONFIG_PACKAGE_tailscale=y
 #CONFIG_PACKAGE_luci-app-unblockneteasemusic=y
 
 # 修改默认IP
-sed -i 's/192.168.1.1/192.168.2.5/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/10.0.2.5/g' package/base-files/files/bin/config_generate
 
 # 修改默认主题
 sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
 # 修改主机名
+sed -i 's/LibWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 
 # 修改主题背景
