@@ -165,31 +165,31 @@ fix_default_set() {
     fi
     # 修改主题背景
     if [ -d "$BUILD_DIR/feeds/luci/themes/luci-theme-argon" ]; then
-      cp -f $BUILD_DIR/argon/img/bg1.jpg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
-      cp -f $BUILD_DIR/argon/img/argon.svg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
-      cp -f $BUILD_DIR/argon/favicon.ico $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
-      cp -f $BUILD_DIR/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
-      cp -f $BUILD_DIR/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
-      cp -f $BUILD_DIR/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
-      cp -f $BUILD_DIR/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
-      cp -f $BUILD_DIR/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
       echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
     fi
     if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
-      cp -f $BUILD_DIR/argon/img/bg1.jpg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
-      cp -f $BUILD_DIR/argon/img/argon.svg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
-      cp -f $BUILD_DIR/argon/favicon.ico $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
-      cp -f $BUILD_DIR/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
-      cp -f $BUILD_DIR/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
-      cp -f $BUILD_DIR/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
-      cp -f $BUILD_DIR/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
-      cp -f $BUILD_DIR/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
-      cp -f $BUILD_DIR/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
       echo "完成feeds/small8/luci-theme-argon修改主题背景"
     fi
     # if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
