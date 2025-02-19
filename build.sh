@@ -37,14 +37,13 @@ COMMIT_HASH=${COMMIT_HASH:-none}
 if [[ -d $BASE_PATH/action_build ]]; then
     BUILD_DIR="action_build"
 fi
-
+echo "开始更新自定义配置"
 $BASE_PATH/update.sh "$REPO_URL" "$REPO_BRANCH" "$BASE_PATH/$BUILD_DIR" "$COMMIT_HASH"
 
 \cp -f "$CONFIG_FILE" "$BASE_PATH/$BUILD_DIR/.config"
+echo "更新自定义配置完成"
 
-chmod +x $DIY_SH
 cd "$BASE_PATH/$BUILD_DIR"
-$DIY_SH
 make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
@@ -55,8 +54,9 @@ TARGET_DIR="$BASE_PATH/$BUILD_DIR/bin/targets"
 if [[ -d $TARGET_DIR ]]; then
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) -exec rm -f {} +
 fi
-
+echo "开始下载安装包"
 make download -j$(($(nproc) * 2))
+echo "开始编译"
 make -j$(($(nproc) + 1)) || make -j1 V=s
 
 FIRMWARE_DIR="$BASE_PATH/firmware"
