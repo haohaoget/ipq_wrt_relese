@@ -38,6 +38,11 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
 
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.24'
+          
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
