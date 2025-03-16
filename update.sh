@@ -24,7 +24,7 @@ FEEDS_CONF="feeds.conf.default"
 GOLANG_REPO="https://github.com/sbwml/packages_lang_golang"
 GOLANG_BRANCH="24.x"
 THEME_SET="argon"
-LAN_ADDR="192.168.1.1"
+LAN_ADDR="10.0.2.5"
 
 clone_repo() {
     if [[ ! -d $BUILD_DIR ]]; then
@@ -133,13 +133,14 @@ update_golang() {
 }
 
 install_small8() {
+# quickstart luci-app-quickstart luci-app-istorex 
     ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata v2ray-geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         luci-app-passwall alist luci-app-alist smartdns luci-app-smartdns v2dat mosdns luci-app-mosdns \
         adguardhome luci-app-adguardhome ddns-go luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd \
-        luci-app-store quickstart luci-app-quickstart luci-app-istorex luci-app-cloudflarespeedtest \
-        luci-theme-argon netdata luci-app-netdata lucky luci-app-lucky luci-app-openclash luci-app-homeproxy \
+        luci-app-storeluci-app-cloudflarespeedtest luci-app-transmission transmission-web-control transmission\
+        luci-theme-argon luci-app-argon-config netdata luci-app-netdata lucky luci-app-lucky luci-app-openclash luci-app-homeproxy \
         luci-app-amlogic nikki luci-app-nikki tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf \
         easytier luci-app-easytier
 }
@@ -161,14 +162,49 @@ install_feeds() {
 fix_default_set() {
     # 修改默认主题
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
+        find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-design/luci-theme-$THEME_SET/g" {} \;
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-$THEME_SET/g" {} \;
     fi
 
-    if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
-        find "$BUILD_DIR/feeds/small8/luci-theme-argon" -type f -name "cascade*" -exec sed -i 's/--bar-bg/--primary/g' {} \;
+    # 修改主机名
+    if [ -d "$BUILD_DIR/package/base-files/files/bin/" ]; then
+        find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/LibWrt/OpenWrt/g" {} \;
+        find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/ImmortalWrt/OpenWrt/g" {} \;
     fi
+    # 修改主题背景
+    if [ -d "$BUILD_DIR/feeds/luci/themes/luci-theme-argon" ]; then
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
+    fi
+    if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      echo "完成feeds/small8/luci-theme-argon修改主题背景"
+    fi
+    # if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
+    #     find "$BUILD_DIR/feeds/small8/luci-theme-argon" -type f -name "cascade*" -exec sed -i 's/--bar-bg/--primary/g' {} \;
+    # fi
 
-    install -Dm755 "$BASE_PATH/patches/99_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/99_set_argon_primary"
+    # install -Dm755 "$BASE_PATH/patches/99_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/99_set_argon_primary"
 
     if [ -f "$BUILD_DIR/package/emortal/autocore/files/tempinfo" ]; then
         if [ -f "$BASE_PATH/patches/tempinfo" ]; then
@@ -448,7 +484,7 @@ update_nss_pbuf_performance() {
 set_build_signature() {
     local file="$BUILD_DIR/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
     if [ -d "$(dirname "$file")" ] && [ -f $file ]; then
-        sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ build by ZqinKing')/g" "$file"
+        sed -i "s/(\(luciversion || ''\))/(\1)/g" "$file"
     fi
 }
 
@@ -557,7 +593,10 @@ function add_backup_info_to_sysupgrade() {
         cat >"$conf_path" <<'EOF'
 /etc/AdGuardHome.yaml
 /etc/easytier
+/etc/tailscale/
 /etc/lucky/
+/etc/nikki/
+/etc/cloudflared/
 EOF
     fi
 }
@@ -577,10 +616,10 @@ function update_script_priority() {
     fi
 
     # 更新mosdns服务的启动顺序
-    local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/etc/init.d/mosdns"
-    if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
-        sed -i 's/START=.*/START=94/g' "$mosdns_path"
-    fi
+    # local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/etc/init.d/mosdns"
+    # if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
+    #     sed -i 's/START=.*/START=94/g' "$mosdns_path"
+    # fi
 }
 
 function optimize_smartDNS() {
@@ -672,7 +711,7 @@ main() {
     update_affinity_script
     fix_build_for_openssl
     update_ath11k_fw
-    # fix_mkpkg_format_invalid
+    fix_mkpkg_format_invalid
     chanage_cpuusage
     update_tcping
     add_wg_chk
@@ -689,9 +728,9 @@ main() {
     update_dnsmasq_conf
     # update_lucky
     add_backup_info_to_sysupgrade
-    optimize_smartDNS
-    update_mosdns_deconfig
-    fix_quickstart
+    # optimize_smartDNS
+    # update_mosdns_deconfig
+    # fix_quickstart
     update_oaf_deconfig
     install_feeds
     update_script_priority
