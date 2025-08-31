@@ -12,7 +12,6 @@ error_handler() {
 # 设置trap捕获ERR信号
 trap 'error_handler' ERR
 
-source /etc/profile
 BASE_PATH=$(cd $(dirname $0) && pwd)
 
 REPO_URL=$1
@@ -22,14 +21,17 @@ COMMIT_HASH=$4
 
 FEEDS_CONF="feeds.conf.default"
 GOLANG_REPO="https://github.com/sbwml/packages_lang_golang"
-GOLANG_BRANCH="24.x"
+GOLANG_BRANCH="25.x"
 THEME_SET="argon"
 LAN_ADDR="10.0.2.5"
 
 clone_repo() {
     if [[ ! -d $BUILD_DIR ]]; then
-        echo $REPO_URL $REPO_BRANCH
-        git clone --depth 1 -b $REPO_BRANCH $REPO_URL $BUILD_DIR
+        echo "克隆仓库: $REPO_URL 分支: $REPO_BRANCH"
+        if ! git clone --depth 1 -b $REPO_BRANCH $REPO_URL $BUILD_DIR; then
+            echo "错误：克隆仓库 $REPO_URL 失败" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -87,24 +89,24 @@ update_feeds() {
 
 remove_unwanted_packages() {
     local luci_packages=(
-        "luci-app-passwall" "luci-app-smartdns" "luci-app-ddns-go" "luci-app-rclone"
-        "luci-app-ssr-plus" "luci-app-vssr" "luci-theme-argon" "luci-app-daed" "luci-app-dae"
-        "luci-app-alist" "luci-app-argon-config" "luci-app-homeproxy" "luci-app-haproxy-tcp"
-        "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter" "luci-app-msd_lite"
+        "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
+        "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"
+        "luci-app-haproxy-tcp" "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter"
+        "luci-app-msd_lite"
     )
     local packages_net=(
         "haproxy" "xray-core" "xray-plugin" "dns2socks" "alist" "hysteria"
-        "smartdns" "mosdns" "adguardhome" "ddns-go" "naiveproxy" "shadowsocks-rust"
+        "mosdns" "adguardhome" "ddns-go" "naiveproxy" "shadowsocks-rust"
         "sing-box" "v2ray-core" "v2ray-geodata" "v2ray-plugin" "tuic-client"
-        "chinadns-ng" "ipt2socks" "tcping" "trojan-plus" "simple-obfs"
-        "shadowsocksr-libev" "dae" "daed" "mihomo" "geoview" "tailscale" "open-app-filter"
-        "msd_lite"
+        "chinadns-ng" "ipt2socks" "tcping" "trojan-plus" "simple-obfs" "shadowsocksr-libev" 
+        "dae" "daed" "mihomo" "geoview" "tailscale" "open-app-filter" "msd_lite"
     )
     local packages_utils=(
         "cups"
     )
     local small8_packages=(
-        "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist" "alist"
+        "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
+        "alist" "opkg" "smartdns" "luci-app-smartdns"
     )
 
     for pkg in "${luci_packages[@]}"; do
@@ -151,8 +153,12 @@ remove_unwanted_packages() {
 
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
+        echo "正在更新 golang 软件包..."
         \rm -rf ./feeds/packages/lang/golang
-        git clone --depth 1 $GOLANG_REPO -b $GOLANG_BRANCH ./feeds/packages/lang/golang
+        if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
+            echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -161,12 +167,22 @@ install_small8() {
     ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata v2ray-geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
-        luci-app-passwall alist luci-app-alist smartdns luci-app-smartdns v2dat mosdns luci-app-mosdns \
-        adguardhome luci-app-adguardhome ddns-go luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd \
+        luci-app-passwall v2dat mosdns luci-app-mosdns adguardhome luci-app-adguardhome ddns-go \
+        luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store \
         luci-app-storeluci-app-cloudflarespeedtest luci-app-transmission transmission-web-control transmission\
-        luci-theme-argon luci-app-argon-config netdata luci-app-netdata lucky luci-app-lucky luci-app-openclash luci-app-homeproxy \
-        luci-app-amlogic nikki luci-app-nikki tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf \
-        easytier luci-app-easytier msd_lite luci-app-msd_lite cups luci-app-cupsd
+        luci-theme-argon luci-app-argon-config netdata luci-app-netdata \
+        lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
+        tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
+        msd_lite luci-app-msd_lite cups luci-app-cupsd
+}
+
+install_fullconenat() {
+    if [ ! -d $BUILD_DIR/package/network/utils/fullconenat-nft ]; then
+        ./scripts/feeds install -p small8 -f fullconenat-nft
+    fi
+    if [ ! -d $BUILD_DIR/package/network/utils/fullconenat ]; then
+        ./scripts/feeds install -p small8 -f fullconenat
+    fi
 }
 
 install_feeds() {
@@ -254,15 +270,6 @@ change_dnsmasq2full() {
     fi
 }
 
-install_fullconenat() {
-    if [ ! -d $BUILD_DIR/package/network/utils/fullconenat-nft ]; then
-        ./scripts/feeds install -p small8 -f fullconenat-nft
-    fi
-    if [ ! -d $BUILD_DIR/package/network/utils/fullconenat ]; then
-        ./scripts/feeds install -p small8 -f fullconenat
-    fi
-}
-
 fix_mk_def_depends() {
     sed -i 's/libustream-mbedtls/libustream-openssl/g' $BUILD_DIR/include/target.mk 2>/dev/null
     if [ -f $BUILD_DIR/target/linux/qualcommax/Makefile ]; then
@@ -289,36 +296,29 @@ update_default_lan_addr() {
 }
 
 remove_something_nss_kmod() {
-    local ipq_target_path="$BUILD_DIR/target/linux/qualcommax/ipq60xx/target.mk"
     local ipq_mk_path="$BUILD_DIR/target/linux/qualcommax/Makefile"
-    if [ -f $ipq_target_path ]; then
-        sed -i 's/kmod-qca-nss-drv-eogremgr//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-gre//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-map-t//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-match//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-mirror//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-pvxlanmgr//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-tun6rd//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-tunipip6//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-drv-vxlanmgr//g' $ipq_target_path
-        sed -i 's/kmod-qca-nss-macsec//g' $ipq_target_path
-    fi
+    local target_mks=("$BUILD_DIR/target/linux/qualcommax/ipq60xx/target.mk" "$BUILD_DIR/target/linux/qualcommax/ipq807x/target.mk")
 
-    if [ -f $ipq_mk_path ]; then
-        sed -i 's/kmod-qca-nss-crypto //g' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-eogremgr/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-gre/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-map-t/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-match/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-mirror/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-tun6rd/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-tunipip6/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-vxlanmgr/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-drv-wifi-meshmgr/d' $ipq_mk_path
-        sed -i '/kmod-qca-nss-macsec/d' $ipq_mk_path
+    for target_mk in "${target_mks[@]}"; do
+        if [ -f "$target_mk" ]; then
+            sed -i 's/kmod-qca-nss-crypto//g' "$target_mk"
+        fi
+    done
 
-        sed -i 's/automount //g' $ipq_mk_path
-        sed -i 's/cpufreq //g' $ipq_mk_path
+    if [ -f "$ipq_mk_path" ]; then
+        sed -i '/kmod-qca-nss-drv-eogremgr/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-gre/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-map-t/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-match/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-mirror/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-tun6rd/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-tunipip6/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-vxlanmgr/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-drv-wifi-meshmgr/d' "$ipq_mk_path"
+        sed -i '/kmod-qca-nss-macsec/d' "$ipq_mk_path"
+
+        sed -i 's/automount //g' "$ipq_mk_path"
+        sed -i 's/cpufreq //g' "$ipq_mk_path"
     fi
 }
 
@@ -332,26 +332,44 @@ update_affinity_script() {
     fi
 }
 
-fix_build_for_openssl() {
-    local openssl_dir="$BUILD_DIR/package/libs/openssl"
-    local makefile="$openssl_dir/Makefile"
-    if [ -d "$(dirname "$makefile")" ] && [ -f "$makefile" ]; then
-        if grep -q "3.0.16" "$makefile"; then
-            # 替换本地openssl版本
-            rm -rf "$openssl_dir"
-            cp -rf "$BASE_PATH/patches/openssl" "$openssl_dir"
-        fi
+# 通用函数，用于修正 Makefile 中的哈希值
+fix_hash_value() {
+    local makefile_path="$1"
+    local old_hash="$2"
+    local new_hash="$3"
+    local package_name="$4"
+
+    if [ -f "$makefile_path" ]; then
+        sed -i "s/$old_hash/$new_hash/g" "$makefile_path"
+        echo "已修正 $package_name 的哈希值。"
     fi
+}
+
+# 应用所有哈希值修正
+apply_hash_fixes() {
+    fix_hash_value \
+        "$BUILD_DIR/package/feeds/packages/smartdns/Makefile" \
+        "150019a03f1ec2e4b5849740a72badf5ea094d5754bd59dd30119523a3ce9398" \
+        "abcb3d3bfa99297dfb92b8fb4f1f78d0948a01281fdfc76c9c460a2c3d5c7f79" \
+        "smartdns"
 }
 
 update_ath11k_fw() {
     local makefile="$BUILD_DIR/package/firmware/ath11k-firmware/Makefile"
     local new_mk="$BASE_PATH/patches/ath11k_fw.mk"
+    local url="https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile"
 
-    if [ -d "$(dirname "$makefile")" ] && [ -f "$makefile" ]; then
-        [ -f "$new_mk" ] && \rm -f "$new_mk"
-        curl -L -o "$new_mk" https://raw.githubusercontent.com/VIKINGYFY/immortalwrt/refs/heads/main/package/firmware/ath11k-firmware/Makefile
-        \mv -f "$new_mk" "$makefile"
+    if [ -d "$(dirname "$makefile")" ]; then
+        echo "正在更新 ath11k-firmware Makefile..."
+        if ! curl -fsSL -o "$new_mk" "$url"; then
+            echo "错误：从 $url 下载 ath11k-firmware Makefile 失败" >&2
+            exit 1
+        fi
+        if [ ! -s "$new_mk" ]; then
+            echo "错误：下载的 ath11k-firmware Makefile 为空文件" >&2
+            exit 1
+        fi
+        mv -f "$new_mk" "$makefile"
     fi
 }
 
@@ -379,15 +397,23 @@ fix_mkpkg_format_invalid() {
 
 add_ax6600_led() {
     local athena_led_dir="$BUILD_DIR/package/emortal/luci-app-athena-led"
+    local repo_url="https://github.com/NONGFAH/luci-app-athena-led.git"
 
-    # 删除旧的目录（如果存在）
+    echo "正在添加 luci-app-athena-led..."
     rm -rf "$athena_led_dir" 2>/dev/null
 
-    # 克隆最新的仓库
-    git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led.git "$athena_led_dir"
-    # 设置执行权限
-    chmod +x "$athena_led_dir/root/usr/sbin/athena-led"
-    chmod +x "$athena_led_dir/root/etc/init.d/athena_led"
+    if ! git clone --depth=1 "$repo_url" "$athena_led_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-app-athena-led 仓库失败" >&2
+        exit 1
+    fi
+
+    if [ -d "$athena_led_dir" ]; then
+        chmod +x "$athena_led_dir/root/usr/sbin/athena-led"
+        chmod +x "$athena_led_dir/root/etc/init.d/athena_led"
+    else
+        echo "错误：克隆操作后未找到目录 $athena_led_dir" >&2
+        exit 1
+    fi
 }
 
 change_cpuusage() {
@@ -414,10 +440,14 @@ change_cpuusage() {
 
 update_tcping() {
     local tcping_path="$BUILD_DIR/feeds/small8/tcping/Makefile"
+    local url="https://raw.githubusercontent.com/xiaorouji/openwrt-passwall-packages/refs/heads/main/tcping/Makefile"
 
-    if [ -d "$(dirname "$tcping_path")" ] && [ -f "$tcping_path" ]; then
-        \rm -f "$tcping_path"
-        curl -L -o "$tcping_path" https://raw.githubusercontent.com/xiaorouji/openwrt-passwall-packages/refs/heads/main/tcping/Makefile
+    if [ -d "$(dirname "$tcping_path")" ]; then
+        echo "正在更新 tcping Makefile..."
+        if ! curl -fsSL -o "$tcping_path" "$url"; then
+            echo "错误：从 $url 下载 tcping Makefile 失败" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -454,13 +484,20 @@ EOF
     chmod +x "$sh_dir/custom_task"
 }
 
-update_pw() {
-    local pw_share_dir="$BUILD_DIR/feeds/small8/luci-app-passwall/root/usr/share/passwall"
-    local smartdns_lua_path="$pw_share_dir/helper_smartdns_add.lua"
-    local rules_dir="$pw_share_dir/rules"
+# 应用 Passwall 相关调整
+apply_passwall_tweaks() {
+    # 清理 Passwall 的 chnlist 规则文件
+    local chnlist_path="$BUILD_DIR/feeds/small8/luci-app-passwall/root/usr/share/passwall/rules/chnlist"
+    if [ -f "$chnlist_path" ]; then
+        > "$chnlist_path"
+    fi
 
-    # 清空chnlist
-    [ -f "$rules_dir/chnlist" ] && echo "" >"$rules_dir/chnlist"
+    # 调整 Xray 最大 RTT 和 保留记录数量
+    local xray_util_path="$BUILD_DIR/feeds/small8/luci-app-passwall/luasrc/passwall/util_xray.lua"
+    if [ -f "$xray_util_path" ]; then
+        sed -i 's/maxRTT = "1s"/maxRTT = "2s"/g' "$xray_util_path"
+        sed -i 's/sampling = 3/sampling = 5/g' "$xray_util_path"
+    fi
 }
 
 install_opkg_distfeeds() {
@@ -501,17 +538,6 @@ set_build_signature() {
     fi
 }
 
-fix_compile_vlmcsd() {
-    local dir="$BUILD_DIR/feeds/packages/net/vlmcsd"
-    local patch_src="$BASE_PATH/patches/001-fix_compile_with_ccache.patch"
-    local patch_dest="$dir/patches"
-
-    if [ -d "$dir" ]; then
-        mkdir -p "$patch_dest"
-        cp -f "$patch_src" "$patch_dest"
-    fi
-}
-
 update_nss_diag() {
     local file="$BUILD_DIR/package/kernel/mac80211/files/nss_diag.sh"
     if [ -d "$(dirname "$file")" ] && [ -f "$file" ]; then
@@ -544,8 +570,12 @@ update_homeproxy() {
     local target_dir="$BUILD_DIR/feeds/small8/luci-app-homeproxy"
 
     if [ -d "$target_dir" ]; then
+        echo "正在更新 homeproxy..."
         rm -rf "$target_dir"
-        git clone --depth 1 "$repo_url" "$target_dir"
+        if ! git clone --depth 1 "$repo_url" "$target_dir"; then
+            echo "错误：从 $repo_url 克隆 homeproxy 仓库失败" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -558,39 +588,48 @@ update_dnsmasq_conf() {
 
 # 更新版本
 update_package() {
-    local dir=$(find "$BUILD_DIR/package" \( -type d -o -type l \) -name $1)
+    local dir=$(find "$BUILD_DIR/package" \( -type d -o -type l \) -name "$1")
     if [ -z "$dir" ]; then
         return 0
     fi
-    local branch=$2
+    local branch="$2"
     if [ -z "$branch" ]; then
         branch="releases"
     fi
     local mk_path="$dir/Makefile"
     if [ -f "$mk_path" ]; then
         # 提取repo
-        local PKG_REPO=$(grep -oE "^PKG_GIT_URL.*github.com(/[-_a-zA-Z0-9]{1,}){2}" $mk_path | awk -F"/" '{print $(NF - 1) "/" $NF}')
+        local PKG_REPO=$(grep -oE "^PKG_GIT_URL.*github.com(/[-_a-zA-Z0-9]{1,}){2}" "$mk_path" | awk -F"/" '{print $(NF - 1) "/" $NF}')
         if [ -z "$PKG_REPO" ]; then
-            PKG_REPO=$(grep -oE "^PKG_SOURCE_URL.*github.com(/[-_a-zA-Z0-9]{1,}){2}" $mk_path | awk -F"/" '{print $(NF - 1) "/" $NF}')
+            PKG_REPO=$(grep -oE "^PKG_SOURCE_URL.*github.com(/[-_a-zA-Z0-9]{1,}){2}" "$mk_path" | awk -F"/" '{print $(NF - 1) "/" $NF}')
             if [ -z "$PKG_REPO" ]; then
-                return 0
+                echo "错误：无法从 $mk_path 提取 PKG_REPO" >&2
+                return 1
             fi
         fi
-        local PKG_VER=$(curl -sL "https://api.github.com/repos/$PKG_REPO/$branch" | jq -r '.[0] | .tag_name // .name')
+        local PKG_VER
+        if ! PKG_VER=$(curl -fsSL "https://api.github.com/repos/$PKG_REPO/$branch" | jq -r '.[0] | .tag_name // .name'); then
+            echo "错误：从 https://api.github.com/repos/$PKG_REPO/$branch 获取版本信息失败" >&2
+            return 1
+        fi
         if [ -n "$3" ]; then
-            PKG_VER=$3
+            PKG_VER="$3"
         fi
-        local COMMIT_SHA=$(curl -sL "https://api.github.com/repos/$PKG_REPO/tags" | jq -r '.[] | select(.name=="'$PKG_VER'") | .commit.sha' | cut -c1-7)
+        local COMMIT_SHA
+        if ! COMMIT_SHA=$(curl -fsSL "https://api.github.com/repos/$PKG_REPO/tags" | jq -r '.[] | select(.name=="'$PKG_VER'") | .commit.sha' | cut -c1-7); then
+            echo "错误：从 https://api.github.com/repos/$PKG_REPO/tags 获取提交哈希失败" >&2
+            return 1
+        fi
         if [ -n "$COMMIT_SHA" ]; then
-            sed -i 's/^PKG_GIT_SHORT_COMMIT:=.*/PKG_GIT_SHORT_COMMIT:='$COMMIT_SHA'/g' $mk_path
+            sed -i 's/^PKG_GIT_SHORT_COMMIT:=.*/PKG_GIT_SHORT_COMMIT:='$COMMIT_SHA'/g' "$mk_path"
         fi
-        PKG_VER=$(echo $PKG_VER | grep -oE "[\.0-9]{1,}")
+        PKG_VER=$(echo "$PKG_VER" | grep -oE "[\.0-9]{1,}")
 
-        local PKG_NAME=$(awk -F"=" '/PKG_NAME:=/ {print $NF}' $mk_path | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
-        local PKG_SOURCE=$(awk -F"=" '/PKG_SOURCE:=/ {print $NF}' $mk_path | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
-        local PKG_SOURCE_URL=$(awk -F"=" '/PKG_SOURCE_URL:=/ {print $NF}' $mk_path | grep -oE "[-_:/\$\(\)\{\}\?\.a-zA-Z0-9]{1,}")
-        local PKG_GIT_URL=$(awk -F"=" '/PKG_GIT_URL:=/ {print $NF}' $mk_path)
-        local PKG_GIT_REF=$(awk -F"=" '/PKG_GIT_REF:=/ {print $NF}' $mk_path)
+        local PKG_NAME=$(awk -F"=" '/PKG_NAME:=/ {print $NF}' "$mk_path" | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
+        local PKG_SOURCE=$(awk -F"=" '/PKG_SOURCE:=/ {print $NF}' "$mk_path" | grep -oE "[-_:/\$\(\)\?\.a-zA-Z0-9]{1,}")
+        local PKG_SOURCE_URL=$(awk -F"=" '/PKG_SOURCE_URL:=/ {print $NF}' "$mk_path" | grep -oE "[-_:/\$\(\)\{\}\?\.a-zA-Z0-9]{1,}")
+        local PKG_GIT_URL=$(awk -F"=" '/PKG_GIT_URL:=/ {print $NF}' "$mk_path")
+        local PKG_GIT_REF=$(awk -F"=" '/PKG_GIT_REF:=/ {print $NF}' "$mk_path")
 
         PKG_SOURCE_URL=${PKG_SOURCE_URL//\$\(PKG_GIT_URL\)/$PKG_GIT_URL}
         PKG_SOURCE_URL=${PKG_SOURCE_URL//\$\(PKG_GIT_REF\)/$PKG_GIT_REF}
@@ -599,12 +638,16 @@ update_package() {
         PKG_SOURCE=${PKG_SOURCE//\$\(PKG_NAME\)/$PKG_NAME}
         PKG_SOURCE=${PKG_SOURCE//\$\(PKG_VERSION\)/$PKG_VER}
 
-        local PKG_HASH=$(curl -sL "$PKG_SOURCE_URL""$PKG_SOURCE" | sha256sum | cut -b -64)
+        local PKG_HASH
+        if ! PKG_HASH=$(curl -fsSL "$PKG_SOURCE_URL""$PKG_SOURCE" | sha256sum | cut -b -64); then
+            echo "错误：从 $PKG_SOURCE_URL$PKG_SOURCE 获取软件包哈希失败" >&2
+            return 1
+        fi
 
-        sed -i 's/^PKG_VERSION:=.*/PKG_VERSION:='$PKG_VER'/g' $mk_path
-        sed -i 's/^PKG_HASH:=.*/PKG_HASH:='$PKG_HASH'/g' $mk_path
+        sed -i 's/^PKG_VERSION:=.*/PKG_VERSION:='$PKG_VER'/g' "$mk_path"
+        sed -i 's/^PKG_HASH:=.*/PKG_HASH:='$PKG_HASH'/g' "$mk_path"
 
-        echo "Update Package $1 to $PKG_VER $PKG_HASH"
+        echo "更新软件包 $1 到 $PKG_VER $PKG_HASH"
     fi
 }
 
@@ -645,30 +688,6 @@ function update_script_priority() {
     # fi
 }
 
-function optimize_smartDNS() {
-    local smartdns_custom="$BUILD_DIR/feeds/small8/smartdns/conf/custom.conf"
-    local smartdns_patch="$BUILD_DIR/feeds/small8/smartdns/patches/010_change_start_order.patch"
-    install -Dm644 "$BASE_PATH/patches/010_change_start_order.patch" "$smartdns_patch"
-
-    # 检查配置文件所在的目录和文件是否存在
-    if [ -d "${smartdns_custom%/*}" ] && [ -f "$smartdns_custom" ]; then
-        # 优化配置选项：
-        # serve-expired-ttl: 缓存有效期(单位：小时)，默认值影响DNS解析速度
-        # serve-expired-reply-ttl: 过期回复TTL
-        # max-reply-ip-num: 最大IP数
-        # dualstack-ip-selection-threshold: IPv6优先的阈值
-        # server: 配置上游DNS
-        echo "优化SmartDNS配置"
-        cat >"$smartdns_custom" <<'EOF'
-serve-expired-ttl 7200
-serve-expired-reply-ttl 5
-max-reply-ip-num 3
-dualstack-ip-selection-threshold 15
-server 223.5.5.5 -bootstrap-dns
-EOF
-    fi
-}
-
 update_mosdns_deconfig() {
     local mosdns_conf="$BUILD_DIR/feeds/small8/luci-app-mosdns/root/etc/config/mosdns"
     if [ -d "${mosdns_conf%/*}" ] && [ -f "$mosdns_conf" ]; then
@@ -679,11 +698,14 @@ update_mosdns_deconfig() {
 
 fix_quickstart() {
     local file_path="$BUILD_DIR/feeds/small8/luci-app-quickstart/luasrc/controller/istore_backend.lua"
+    local url="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
     # 下载新的istore_backend.lua文件并覆盖
     if [ -f "$file_path" ]; then
-        \rm -f "$file_path"
-        curl -L https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua \
-            -o "$file_path"
+        echo "正在修复 quickstart..."
+        if ! curl -fsSL -o "$file_path" "$url"; then
+            echo "错误：从 $url 下载 istore_backend.lua 失败" >&2
+            exit 1
+        fi
     fi
 }
 
@@ -728,63 +750,25 @@ support_fw4_adg() {
 
 add_timecontrol() {
     local timecontrol_dir="$BUILD_DIR/package/luci-app-timecontrol"
+    local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"
     # 删除旧的目录（如果存在）
     rm -rf "$timecontrol_dir" 2>/dev/null
-    git clone --depth 1 https://github.com/sirpdboy/luci-app-timecontrol.git "$timecontrol_dir"
+    echo "正在添加 luci-app-timecontrol..."
+    if ! git clone --depth 1 "$repo_url" "$timecontrol_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-app-timecontrol 仓库失败" >&2
+        exit 1
+    fi
 }
 
 add_gecoosac() {
     local gecoosac_dir="$BUILD_DIR/package/openwrt-gecoosac"
+    local repo_url="https://github.com/lwb1978/openwrt-gecoosac.git"
     # 删除旧的目录（如果存在）
     rm -rf "$gecoosac_dir" 2>/dev/null
-    git clone --depth 1 https://github.com/lwb1978/openwrt-gecoosac.git "$gecoosac_dir"
-}
-
-update_proxy_app_menu_location() {
-    # passwall
-    local passwall_path="$BUILD_DIR/package/feeds/small8/luci-app-passwall/luasrc/controller/passwall.lua"
-    if [ -d "${passwall_path%/*}" ] && [ -f "$passwall_path" ]; then
-        local pos=$(grep -n "entry" "$passwall_path" | head -n 1 | awk -F ":" '{print $1}')
-        if [ -n "$pos" ]; then
-            sed -i ''${pos}'i\	entry({"admin", "proxy"}, firstchild(), "Proxy", 30).dependent = false' "$passwall_path"
-            sed -i 's/"services"/"proxy"/g' "$passwall_path"
-        fi
-    fi
-
-    # homeproxy
-    local homeproxy_path="$BUILD_DIR/package/feeds/small8/luci-app-homeproxy/root/usr/share/luci/menu.d/luci-app-homeproxy.json"
-    if [ -d "${homeproxy_path%/*}" ] && [ -f "$homeproxy_path" ]; then
-        sed -i 's/\/services\//\/proxy\//g' "$homeproxy_path"
-    fi
-
-    # nikki
-    local nikki_path="$BUILD_DIR/package/feeds/small8/luci-app-nikki/root/usr/share/luci/menu.d/luci-app-nikki.json"
-    if [ -d "${nikki_path%/*}" ] && [ -f "$nikki_path" ]; then
-        sed -i 's/\/services\//\/proxy\//g' "$nikki_path"
-    fi
-}
-
-update_dns_app_menu_location() {
-    # smartdns
-    local smartdns_path="$BUILD_DIR/package/feeds/small8/luci-app-smartdns/luasrc/controller/smartdns.lua"
-    if [ -d "${smartdns_path%/*}" ] && [ -f "$smartdns_path" ]; then
-        local pos=$(grep -n "entry" "$smartdns_path" | head -n 1 | awk -F ":" '{print $1}')
-        if [ -n "$pos" ]; then
-            sed -i ''${pos}'i\	entry({"admin", "dns"}, firstchild(), "DNS", 29).dependent = false' "$smartdns_path"
-            sed -i 's/"services"/"dns"/g' "$smartdns_path"
-        fi
-    fi
-
-    # mosdns
-    local mosdns_path="$BUILD_DIR/package/feeds/small8/luci-app-mosdns/root/usr/share/luci/menu.d/luci-app-mosdns.json"
-    if [ -d "${mosdns_path%/*}" ] && [ -f "$mosdns_path" ]; then
-        sed -i 's/\/services\//\/dns\//g' "$mosdns_path"
-    fi
-
-    # AdGuardHome
-    local adg_path="$BUILD_DIR/package/feeds/small8/luci-app-adguardhome/luasrc/controller/AdGuardHome.lua"
-    if [ -d "${adg_path%/*}" ] && [ -f "$adg_path" ]; then
-        sed -i 's/"services"/"dns"/g' "$adg_path"
+    echo "正在添加 openwrt-gecoosac..."
+    if ! git clone --depth 1 "$repo_url" "$gecoosac_dir"; then
+        echo "错误：从 $repo_url 克隆 openwrt-gecoosac 仓库失败" >&2
+        exit 1
     fi
 }
 
@@ -802,8 +786,16 @@ update_geoip() {
         if [ -n "$GEOIP_VER" ]; then
             local base_url="https://github.com/v2fly/geoip/releases/download/${GEOIP_VER}"
             # 下载旧的geoip.dat和新的geoip-only-cn-private.dat文件的校验和
-            local old_SHA256=$(wget -qO- "$base_url/geoip.dat.sha256sum" | awk '{print $1}')
-            local new_SHA256=$(wget -qO- "$base_url/geoip-only-cn-private.dat.sha256sum" | awk '{print $1}')
+            local old_SHA256
+            if ! old_SHA256=$(wget -qO- "$base_url/geoip.dat.sha256sum" | awk '{print $1}'); then
+                echo "错误：从 $base_url/geoip.dat.sha256sum 获取旧的 geoip.dat 校验和失败" >&2
+                return 1
+            fi
+            local new_SHA256
+            if ! new_SHA256=$(wget -qO- "$base_url/geoip-only-cn-private.dat.sha256sum" | awk '{print $1}'); then
+                echo "错误：从 $base_url/geoip-only-cn-private.dat.sha256sum 获取新的 geoip-only-cn-private.dat 校验和失败" >&2
+                return 1
+            fi
             # 更新Makefile中的文件名和校验和
             if [ -n "$old_SHA256" ] && [ -n "$new_SHA256" ]; then
                 if grep -q "$old_SHA256" "$geodata_path"; then
@@ -852,56 +844,43 @@ fix_rust_compile_error() {
 }
 
 update_smartdns() {
-    local feeds_dir="$BUILD_DIR/feeds/small8"
-    local luci_app_smartdns_path="$feeds_dir/luci-app-smartdns"
-    local old_smartdns_pkg_path="$feeds_dir/smartdns"
-    local new_smartdns_pkg_path="$feeds_dir/openwrt-smartdns"
-    local tmp_dir
-
-    echo "正在更新 luci-app-smartdns..."
-    # 删除旧版并克隆新版
-    \rm -rf "$luci_app_smartdns_path"
-    if ! git clone --depth 1 -b master https://github.com/pymumu/luci-app-smartdns.git "$luci_app_smartdns_path"; then
-        echo "错误：克隆 luci-app-smartdns 失败。" >&2
-        return 1
-    fi
-
-    # 修复 Makefile 中的路径
-    local makefile_path="$luci_app_smartdns_path/Makefile"
-    if [ -f "$makefile_path" ]; then
-        sed -i 's/\.\.\/\.\.\/luci\.mk/$(TOPDIR)\/feeds\/luci\/luci\.mk/g' "$makefile_path"
-    fi
+    # smartdns 仓库地址
+    local SMARTDNS_REPO="https://github.com/pymumu/openwrt-smartdns.git"
+    local SMARTDNS_DIR="$BUILD_DIR/feeds/packages/net/smartdns"
+    # luci-app-smartdns 仓库地址
+    local LUCI_APP_SMARTDNS_REPO="https://github.com/pymumu/luci-app-smartdns.git"
+    local LUCI_APP_SMARTDNS_DIR="$BUILD_DIR/feeds/luci/applications/luci-app-smartdns"
 
     echo "正在更新 smartdns..."
-
-    # 使用临时目录克隆
-    tmp_dir=$(mktemp -d)
-    if ! git clone --depth 1 -b master https://github.com/pymumu/openwrt-smartdns.git "$tmp_dir"; then
-        echo "错误：克隆 openwrt-smartdns 仓库失败。" >&2
-        rm -rf "$tmp_dir"
-        return 1
-    else
-        # 删除旧版
-        rm -rf "$old_smartdns_pkg_path"
-        mv "$tmp_dir" "$new_smartdns_pkg_path"
-
-        # 修复 Makefile 中的路径
-        makefile_path="$new_smartdns_pkg_path/Makefile"
-        if [ -f "$makefile_path" ]; then
-            sed -i 's/\.\.\/\.\.\/lang/$(TOPDIR)\/feeds\/packages\/lang/g' "$makefile_path"
-        fi
+    rm -rf "$SMARTDNS_DIR"
+    if ! git clone --depth=1 "$SMARTDNS_REPO" "$SMARTDNS_DIR"; then
+        echo "错误：从 $SMARTDNS_REPO 克隆 smartdns 仓库失败" >&2
+        exit 1
     fi
 
-    echo "SmartDNS 更新完成。"
+    install -Dm644 "$BASE_PATH/patches/100-smartdns-optimize.patch" "$SMARTDNS_DIR/patches/100-smartdns-optimize.patch"
+    sed -i '/define Build\/Compile\/smartdns-ui/,/endef/s/CC=\$(TARGET_CC)/CC="\$(TARGET_CC_NOCACHE)"/' "$SMARTDNS_DIR/Makefile"
+
+    echo "正在更新 luci-app-smartdns..."
+    rm -rf "$LUCI_APP_SMARTDNS_DIR"
+    if ! git clone --depth=1 "$LUCI_APP_SMARTDNS_REPO" "$LUCI_APP_SMARTDNS_DIR"; then
+        echo "错误：从 $LUCI_APP_SMARTDNS_REPO 克隆 luci-app-smartdns 仓库失败" >&2
+        exit 1
+    fi
 }
 
 update_diskman() {
     local path="$BUILD_DIR/feeds/luci/applications/luci-app-diskman"
+    local repo_url="https://github.com/lisaac/luci-app-diskman.git"
     if [ -d "$path" ]; then
+        echo "正在更新 diskman..."
         cd "$BUILD_DIR/feeds/luci/applications" || return # 显式路径避免歧义
         \rm -rf "luci-app-diskman"                        # 直接删除目标目录
 
-        git clone --filter=blob:none --no-checkout https://github.com/lisaac/luci-app-diskman.git diskman || return
+        if ! git clone --filter=blob:none --no-checkout "$repo_url" diskman; then
+            echo "错误：从 $repo_url 克隆 diskman 仓库失败" >&2
+            exit 1
+        fi
         cd diskman || return
 
         git sparse-checkout init --cone
@@ -919,17 +898,117 @@ update_diskman() {
     fi
 }
 
-fix_samba4() {
-    local SAMBA4_MAKEFILE="$BUILD_DIR/feeds/packages/net/samba4/Makefile"
-
-    # 检查 samba4-libs 的依赖中是否已经包含了 libcrypt-compat
-    if ! sed -n '/define Package\/samba4-libs/,/endef/p' "$SAMBA4_MAKEFILE" | grep -q 'DEPENDS:=.*+libcrypt-compat'; then
-        echo "Adding +libcrypt-compat dependency to samba4-libs..."
-        # 使用更健壮的命令来添加依赖
-        sed -i '/define Package\/samba4-libs/,/endef/s/^\(\s*DEPENDS:=\)/\1 +libcrypt-compat/' "$SAMBA4_MAKEFILE"
-    else
-        echo "Dependency +libcrypt-compat already exists in samba4-libs."
+add_quickfile() {
+    local repo_url="https://github.com/sbwml/luci-app-quickfile.git"
+    local target_dir="$BUILD_DIR/package/emortal/quickfile"
+    if [ -d "$target_dir" ]; then
+        rm -rf "$target_dir"
     fi
+    echo "正在添加 luci-app-quickfile..."
+    if ! git clone --depth 1 "$repo_url" "$target_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-app-quickfile 仓库失败" >&2
+        exit 1
+    fi
+
+    local makefile_path="$target_dir/quickfile/Makefile"
+    if [ -f "$makefile_path" ]; then
+        sed -i '/\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-\$(ARCH_PACKAGES)/c\
+\tif [ "\$(ARCH_PACKAGES)" = "x86_64" ]; then \\\
+\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-x86_64 \$(1)\/usr\/bin\/quickfile; \\\
+\telse \\\
+\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-aarch64_generic \$(1)\/usr\/bin\/quickfile; \\\
+\tfi' "$makefile_path"
+    fi
+}
+
+# 设置 Nginx 默认配置
+set_nginx_default_config() {
+    local nginx_config_path="$BUILD_DIR/feeds/packages/net/nginx-util/files/nginx.config"
+    if [ -f "$nginx_config_path" ]; then
+        # 使用 cat 和 heredoc 覆盖写入 nginx.config 文件
+        cat > "$nginx_config_path" <<EOF
+config main 'global'
+        option uci_enable 'true'
+
+config server '_lan'
+        list listen '443 ssl default_server'
+        list listen '[::]:443 ssl default_server'
+        option server_name '_lan'
+        list include 'restrict_locally'
+        list include 'conf.d/*.locations'
+        option uci_manage_ssl 'self-signed'
+        option ssl_certificate '/etc/nginx/conf.d/_lan.crt'
+        option ssl_certificate_key '/etc/nginx/conf.d/_lan.key'
+        option ssl_session_cache 'shared:SSL:32k'
+        option ssl_session_timeout '64m'
+        option access_log 'off; # logd openwrt'
+
+config server 'http_only'
+        list listen '80'
+        list listen '[::]:80'
+        option server_name 'http_only'
+        list include 'conf.d/*.locations'
+        option access_log 'off; # logd openwrt'
+EOF
+    fi
+
+    local nginx_template="$BUILD_DIR/feeds/packages/net/nginx-util/files/uci.conf.template"
+    if [ -f "$nginx_template" ]; then
+        # 检查是否已存在配置，避免重复添加
+        if ! grep -q "client_body_in_file_only clean;" "$nginx_template"; then
+            sed -i "/client_max_body_size 128M;/a\\
+\tclient_body_in_file_only clean;\\
+\tclient_body_temp_path /mnt/tmp;" "$nginx_template"
+        fi
+    fi
+}
+
+update_uwsgi_limit_as() {
+    # 更新 uwsgi 的 limit-as 配置，将其值更改为 8192
+    local cgi_io_ini="$BUILD_DIR/feeds/packages/net/uwsgi/files-luci-support/luci-cgi_io.ini"
+    local webui_ini="$BUILD_DIR/feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini"
+
+    if [ -f "$cgi_io_ini" ]; then
+        # 将 luci-cgi_io.ini 文件中的 limit-as 值更新为 8192
+        sed -i 's/^limit-as = .*/limit-as = 8192/g' "$cgi_io_ini"
+    fi
+
+    if [ -f "$webui_ini" ]; then
+        # 将 luci-webui.ini 文件中的 limit-as 值更新为 8192
+        sed -i 's/^limit-as = .*/limit-as = 8192/g' "$webui_ini"
+    fi
+}
+
+remove_tweaked_packages() {
+    local target_mk="$BUILD_DIR/include/target.mk"
+    if [ -f "$target_mk" ]; then
+        # 检查目标行是否未被注释
+        if grep -q "^DEFAULT_PACKAGES += \$(DEFAULT_PACKAGES.tweak)" "$target_mk"; then
+            # 如果未被注释，则添加注释
+            sed -i 's/DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/# DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)/g' "$target_mk"
+        fi
+    fi
+}
+
+update_argon() {
+    local repo_url="https://github.com/ZqinKing/luci-theme-argon.git"
+    local dst_theme_path="$BUILD_DIR/feeds/luci/themes/luci-theme-argon"
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+
+    echo "正在更新 argon 主题..."
+
+    if ! git clone --depth 1 "$repo_url" "$tmp_dir"; then
+        echo "错误：从 $repo_url 克隆 argon 主题仓库失败" >&2
+        rm -rf "$tmp_dir"
+        exit 1
+    fi
+
+    rm -rf "$dst_theme_path"
+    rm -rf "$tmp_dir/.git"
+    mv "$tmp_dir" "$dst_theme_path"
+
+    echo "luci-theme-argon 更新完成"
 }
 
 main() {
@@ -938,6 +1017,7 @@ main() {
     reset_feeds_conf
     update_feeds
     remove_unwanted_packages
+    remove_tweaked_packages
     update_homeproxy
     fix_default_set
     fix_miniupnpd
@@ -948,18 +1028,16 @@ main() {
     update_default_lan_addr
     remove_something_nss_kmod
     update_affinity_script
-    # fix_build_for_openssl
     update_ath11k_fw
     # fix_mkpkg_format_invalid
     change_cpuusage
     update_tcping
     add_ax6600_led
     set_custom_task
-    update_pw
+    apply_passwall_tweaks
     install_opkg_distfeeds
     update_nss_pbuf_performance
     set_build_signature
-    fix_compile_vlmcsd
     update_nss_diag
     update_menu_location
     fix_compile_coremark
@@ -971,11 +1049,14 @@ main() {
     update_oaf_deconfig
     add_timecontrol
     add_gecoosac
+    # add_quickfile
     update_lucky
     fix_rust_compile_error
-    # update_smartdns 暂不更新，openwrt-smartdns不适配
+    # update_smartdns
     update_diskman
-    fix_samba4
+    set_nginx_default_config
+    update_uwsgi_limit_as
+    update_argon
     install_feeds
     support_fw4_adg
     update_script_priority
@@ -985,9 +1066,7 @@ main() {
     update_package "containerd" "releases" "v1.7.27"
     update_package "docker" "tags" "v28.2.2"
     update_package "dockerd" "releases" "v28.2.2"
-    # update_package "xray-core"
-    # update_proxy_app_menu_location
-    # update_dns_app_menu_location
+    apply_hash_fixes # 调用哈希修正函数
 }
 
 main "$@"
