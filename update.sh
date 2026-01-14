@@ -52,16 +52,19 @@ clone_repo() {
 
 clean_up() {
     cd $BUILD_DIR
-    if [[ -f $BUILD_DIR/.config ]]; then
-        \rm -f $BUILD_DIR/.config
+    if [[ -f "$BUILD_DIR/.config" ]]; then
+        \rm -f "$BUILD_DIR/.config"
     fi
-    if [[ -d $BUILD_DIR/tmp ]]; then
-        \rm -rf $BUILD_DIR/tmp
+    if [[ -d "$BUILD_DIR/tmp" ]]; then
+        \rm -rf "$BUILD_DIR/tmp"
     fi
-    if [[ -d $BUILD_DIR/logs ]]; then
-        \rm -rf $BUILD_DIR/logs/*
+    if [[ -d "$BUILD_DIR/logs" ]]; then
+        \rm -rf "$BUILD_DIR/logs/*"
     fi
-    mkdir -p $BUILD_DIR/tmp
+    if [[ -d "$BUILD_DIR/feeds" ]]; then
+        ./scripts/feeds clean
+    fi
+    mkdir -p "$BUILD_DIR/tmp"
     echo "1" >$BUILD_DIR/tmp/.build
 }
 
@@ -76,13 +79,18 @@ reset_feeds_conf() {
 
 update_feeds() {
     # 删除注释行
-    sed -i '/^#/d' "$BUILD_DIR/$FEEDS_CONF"
+    local FEEDS_PATH="$BUILD_DIR/$FEEDS_CONF"
+    if [[ -f "$BUILD_DIR/feeds.conf" ]]; then
+        FEEDS_PATH="$BUILD_DIR/feeds.conf"
+    fi
+    sed -i '/^#/d' "$FEEDS_PATH"
+    sed -i '/packages_ext/d' "$FEEDS_PATH"
 
     # 检查并添加 small-package 源
-    if ! grep -q "small-package" "$BUILD_DIR/$FEEDS_CONF"; then
+    if ! grep -q "small-package" "$FEEDS_PATH"; then
         # 确保文件以换行符结尾
-        [ -z "$(tail -c 1 "$BUILD_DIR/$FEEDS_CONF")" ] || echo "" >>"$BUILD_DIR/$FEEDS_CONF"
-        echo "src-git small8 https://github.com/kenzok8/small-package" >>"$BUILD_DIR/$FEEDS_CONF"
+        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
+        echo "src-git small8 https://github.com/kenzok8/small-package" >>"$FEEDS_PATH"
     fi
 
     # 添加bpf.mk解决更新报错
@@ -98,7 +106,6 @@ update_feeds() {
     # fi
 
     # 更新 feeds
-    ./scripts/feeds clean
     ./scripts/feeds update -a
 }
 
@@ -121,7 +128,7 @@ remove_unwanted_packages() {
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier"
     )
 
     for pkg in "${luci_packages[@]}"; do
@@ -180,7 +187,7 @@ update_golang() {
 install_small8() {
 # quickstart luci-app-quickstart luci-app-istorex 
     ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
-        naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata v2ray-geoview v2ray-plugin \
+        naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         luci-app-passwall v2dat mosdns luci-app-mosdns adguardhome luci-app-adguardhome ddns-go \
         luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store \
@@ -202,8 +209,8 @@ install_fullconenat() {
 
 check_default_settings() {
     local settings_dir="$BUILD_DIR/package/emortal/default-settings"
-    if [ ! -d "$settings_dir" ]; then
-        echo "目录 $settings_dir 不存在，正在从 immortalwrt 仓库克隆..."
+    if [ -z "$(find "$BUILD_DIR/package" -type d -name "default-settings" -print -quit 2>/dev/null)" ]; then
+        echo "在 $BUILD_DIR/package 中未找到 default-settings 目录，正在从 immortalwrt 仓库克隆..."
         local tmp_dir
         tmp_dir=$(mktemp -d)
         if git clone --depth 1 --filter=blob:none --sparse https://github.com/immortalwrt/immortalwrt.git "$tmp_dir"; then
@@ -228,7 +235,7 @@ install_feeds() {
     ./scripts/feeds update -i
     for dir in $BUILD_DIR/feeds/*; do
         # 检查是否为目录并且不以 .tmp 结尾，并且不是软链接
-        if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [ ! -L "$dir" ]; then
+        if [ -d "$dir" ] && [[ ! "$dir" == *.tmp ]] && [[ ! "$dir" == *.index ]] && [[ ! "$dir" == *.targetindex ]]; then
             if [[ $(basename "$dir") == "small8" ]]; then
                 install_small8
                 install_fullconenat
@@ -468,8 +475,12 @@ change_cpuusage() {
     fi
 
     # Install platform-specific cpuusage scripts
-    install -Dm755 "$BASE_PATH/patches/cpuusage" "$qualcommax_sbin_dir/cpuusage"
-    install -Dm755 "$BASE_PATH/patches/hnatusage" "$filogic_sbin_dir/cpuusage"
+    if [ -d "$BUILD_DIR/target/linux/qualcommax" ]; then
+        install -Dm755 "$BASE_PATH/patches/cpuusage" "$qualcommax_sbin_dir/cpuusage"
+    fi
+    if [ -d "$BUILD_DIR/target/linux/mediatek" ]; then
+        install -Dm755 "$BASE_PATH/patches/hnatusage" "$filogic_sbin_dir/cpuusage"
+    fi
 }
 
 update_tcping() {
@@ -837,18 +848,64 @@ update_geoip() {
 }
 
 update_lucky() {
+    local lucky_repo_url="https://github.com/gdy666/luci-app-lucky.git"
+    local target_small8_dir="$BUILD_DIR/feeds/small8"
+    local lucky_dir="$target_small8_dir/lucky"
+    local luci_app_lucky_dir="$target_small8_dir/luci-app-lucky"
+
+    # 提前检查目标目录是否存在
+    if [ ! -d "$lucky_dir" ] || [ ! -d "$luci_app_lucky_dir" ]; then
+        echo "Warning: $lucky_dir 或 $luci_app_lucky_dir 不存在，跳过 lucky 源代码更新。" >&2
+    else
+        local tmp_dir
+        tmp_dir=$(mktemp -d)
+
+        echo "正在从 $lucky_repo_url 稀疏检出 luci-app-lucky 和 lucky..."
+
+        if ! git clone --depth 1 --filter=blob:none --no-checkout "$lucky_repo_url" "$tmp_dir"; then
+            echo "错误：从 $lucky_repo_url 克隆仓库失败" >&2
+            rm -rf "$tmp_dir"
+            return 0
+        fi
+
+        pushd "$tmp_dir" > /dev/null
+        git sparse-checkout init --cone
+        git sparse-checkout set luci-app-lucky lucky || {
+            echo "错误：稀疏检出 luci-app-lucky 或 lucky 失败" >&2
+            popd > /dev/null
+            rm -rf "$tmp_dir"
+            return 0
+        }
+        git checkout --quiet
+
+        # 覆盖到目标目录
+        \cp -rf "$tmp_dir/luci-app-lucky/." "$luci_app_lucky_dir/"
+        \cp -rf "$tmp_dir/lucky/." "$lucky_dir/"
+
+        popd > /dev/null
+        rm -rf "$tmp_dir"
+        echo "luci-app-lucky 和 lucky 源代码更新完成。"
+    fi
+
+    # 默认关闭lucky
+    local lucky_conf="$BUILD_DIR/feeds/small8/lucky/files/luckyuci"
+    if [ -f "$lucky_conf" ]; then
+        sed -i "s/option enabled '1'/option enabled '0'/g" "$lucky_conf"
+        sed -i "s/option logger '1'/option logger '0'/g" "$lucky_conf"
+    fi
+
     # 从补丁文件名中提取版本号
     local version
     version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -printf "%f\n" | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
     if [ -z "$version" ]; then
         echo "Warning: 未找到 lucky 补丁文件，跳过更新。" >&2
-        return 1
+        return 0
     fi
 
     local makefile_path="$BUILD_DIR/feeds/small8/lucky/Makefile"
     if [ ! -f "$makefile_path" ]; then
         echo "Warning: lucky Makefile not found. Skipping." >&2
-        return 1
+        return 0
     fi
 
     echo "正在更新 lucky Makefile..."
@@ -1057,6 +1114,13 @@ fix_easytier_lua() {
     fi
 }
 
+fix_easytier_mk() {
+	local mk_path="$BUILD_DIR/feeds/small8/luci-app-easytier/easytier/Makefile"
+    if [ -f "$mk_path" ]; then
+        sed -i 's/!@(mips||mipsel)/!TARGET_mips \&\& !TARGET_mipsel/g' "$mk_path"
+    fi
+}
+
 # 更新 nginx-mod-ubus 模块
 update_nginx_ubus_module() {
     local makefile_path="$BUILD_DIR/feeds/packages/net/nginx/Makefile"
@@ -1071,6 +1135,32 @@ update_nginx_ubus_module() {
         echo "已更新 nginx-mod-ubus 模块的 SOURCE_DATE, SOURCE_VERSION 和 MIRROR_HASH。"
     else
         echo "错误：未找到 $makefile_path 文件，无法更新 nginx-mod-ubus 模块。" >&2
+    fi
+}
+
+remove_attendedsysupgrade() {
+    find "$BUILD_DIR/feeds/luci/collections" -name "Makefile" | while read -r makefile; do
+        if grep -q "luci-app-attendedsysupgrade" "$makefile"; then
+            sed -i "/luci-app-attendedsysupgrade/d" "$makefile"
+            echo "Removed luci-app-attendedsysupgrade from $makefile"
+        fi
+    done
+}
+
+fix_openssl_ktls() {
+    local config_in="$BUILD_DIR/package/libs/openssl/Config.in"
+    if [ -f "$config_in" ]; then
+        echo "正在更新 OpenSSL kTLS 配置..."
+        sed -i 's/select PACKAGE_kmod-tls/depends on PACKAGE_kmod-tls/g' "$config_in"
+        sed -i '/depends on PACKAGE_kmod-tls/a\\tdefault y if PACKAGE_kmod-tls' "$config_in"
+    fi
+}
+
+fix_opkg_check() {
+    local patch_file="$BASE_PATH/patches/001-fix-provides-version-parsing.patch"
+    local opkg_dir="$BUILD_DIR/package/system/opkg"
+    if [ -f "$patch_file" ]; then
+        install -Dm644 "$patch_file" "$opkg_dir/patches/001-fix-provides-version-parsing.patch"
     fi
 }
 
@@ -1121,11 +1211,15 @@ main() {
     update_nginx_ubus_module # 更新 nginx-mod-ubus 模块
     check_default_settings
     install_opkg_distfeeds
+    fix_easytier_mk
+    remove_attendedsysupgrade
     install_feeds
     fix_easytier_lua
     update_adguardhome
     update_script_priority
     update_geoip
+    fix_openssl_ktls
+    fix_opkg_check
     update_package "runc" "releases" "v1.2.6"
     update_package "containerd" "releases" "v1.7.27"
     update_package "docker" "tags" "v28.2.2"
