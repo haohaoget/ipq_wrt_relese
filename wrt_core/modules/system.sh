@@ -352,8 +352,7 @@ add_backup_info_to_sysupgrade() {
 /etc/nikki/
 /etc/cloudflared/
 /etc/containers/
-/etc/config/containers
-/etc/init.d/containers
+/etc/init.d/container-*
 EOF
     fi
 }
