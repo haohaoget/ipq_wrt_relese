@@ -1,13 +1,48 @@
 #!/usr/bin/env bash
 
 fix_default_set() {
+    # 修改默认主题
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
+        find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-design/luci-theme-$THEME_SET/g" {} \;
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-$THEME_SET/g" {} \;
     fi
-
-    install -Dm544 "$BASE_PATH/patches/990_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/990_set_argon_primary"
+    # 修改主机名
+    if [ -d "$BUILD_DIR/package/base-files/files/bin/" ]; then
+        find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/LibWrt/OpenWrt/g" {} \;
+        find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/ImmortalWrt/OpenWrt/g" {} \;
+    fi
+    # 修改主题背景
+    if [ -d "$BUILD_DIR/feeds/luci/themes/luci-theme-argon" ]; then
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
+    fi
+    if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
+      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      echo "完成feeds/small8/luci-theme-argon修改主题背景"
+    fi
+    # install -Dm544 "$BASE_PATH/patches/990_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/990_set_argon_primary"
     install -Dm544 "$BASE_PATH/patches/991_custom_settings" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/991_custom_settings"
-    install -Dm544 "$BASE_PATH/patches/992_set-wifi-uci.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_set-wifi-uci.sh"
+    # install -Dm544 "$BASE_PATH/patches/992_set-wifi-uci.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_set-wifi-uci.sh"
 
     if [ -f "$BUILD_DIR/package/emortal/autocore/files/tempinfo" ]; then
         if [ -f "$BASE_PATH/patches/tempinfo" ]; then
@@ -267,7 +302,7 @@ update_nss_pbuf_performance() {
 set_build_signature() {
     local file="$BUILD_DIR/feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
     if [ -d "$(dirname "$file")" ] && [ -f $file ]; then
-        sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ build by ZqinKing')/g" "$file"
+        sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ build by haohaoget')/g" "$file"
     fi
 }
 
@@ -312,7 +347,10 @@ add_backup_info_to_sysupgrade() {
         cat >"$conf_path" <<'EOF'
 /etc/AdGuardHome.yaml
 /etc/easytier
+/etc/tailscale/
 /etc/lucky/
+/etc/nikki/
+/etc/cloudflared/
 EOF
     fi
 }

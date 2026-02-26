@@ -64,19 +64,19 @@ main() {
     fix_compile_coremark
     update_dnsmasq_conf
     add_backup_info_to_sysupgrade
-    update_mosdns_deconfig
-    fix_quickstart
+    # update_mosdns_deconfig
+    # fix_quickstart
     update_oaf_deconfig
     add_timecontrol
     add_gecoosac
-    add_quickfile
+    # add_quickfile
     update_lucky
     fix_rust_compile_error
     update_smartdns
     update_diskman
     set_nginx_default_config
     update_uwsgi_limit_as
-    update_argon
+    # update_argon
     update_nginx_ubus_module
     check_default_settings
     install_opkg_distfeeds
