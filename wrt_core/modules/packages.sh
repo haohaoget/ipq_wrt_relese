@@ -154,6 +154,17 @@ update_homeproxy() {
     fi
 }
 
+add_podman() {
+    local podman_dir="$BUILD_DIR/package/luci-app-podman"
+    local repo_url="https://github.com/Zerogiven-OpenWRT-Packages/luci-app-podman.git"
+    rm -rf "$podman_dir" 2>/dev/null
+    echo "正在添加 luci-app-podman..."
+    if ! git clone --depth 1 "$repo_url" "$podman_dir"; then
+        echo "错误：从 $repo_url 克隆 openwrt-podman 仓库失败" >&2
+        exit 1
+    fi
+}
+
 add_timecontrol() {
     local timecontrol_dir="$BUILD_DIR/package/luci-app-timecontrol"
     local repo_url="https://github.com/sirpdboy/luci-app-timecontrol.git"

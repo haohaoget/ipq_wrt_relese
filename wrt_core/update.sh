@@ -69,6 +69,7 @@ main() {
     update_oaf_deconfig
     add_timecontrol
     add_gecoosac
+    add_podman
     # add_quickfile
     update_lucky
     fix_rust_compile_error

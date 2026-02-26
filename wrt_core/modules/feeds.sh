@@ -28,11 +28,6 @@ update_feeds() {
         echo 'src-git luci_app_bandix https://github.com/timsaya/luci-app-bandix.git;main' >>"$BUILD_DIR/$FEEDS_CONF"
     fi
 
-    if ! grep -q "luci_app_podman" "$BUILD_DIR/$FEEDS_CONF"; then
-        [ -z "$(tail -c 1 "$BUILD_DIR/$FEEDS_CONF")" ] || echo "" >>"$BUILD_DIR/$FEEDS_CONF"
-        echo 'src-git luci_app_podman https://github.com/Zerogiven-OpenWRT-Packages/luci-app-podman.git;main' >>"$BUILD_DIR/$FEEDS_CONF"
-    fi
-
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi
