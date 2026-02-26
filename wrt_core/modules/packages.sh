@@ -79,7 +79,8 @@ install_small8() {
         luci-app-cloudflarespeedtest netdata luci-app-netdata \
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
-        msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config 
+        msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config \
+        qbittorrent luci-app-qbittorrent
 }
 
 install_passwall() {
