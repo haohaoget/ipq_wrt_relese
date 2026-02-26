@@ -352,6 +352,21 @@ update_argon() {
     mv "$tmp_dir" "$dst_theme_path"
 
     echo "luci-theme-argon 更新完成"
+    # 修改主题背景
+    if [ -d "$dst_theme_path" ]; then
+      cp -f $BASE_PATH/argon/img/bg1.jpg $dst_theme_path/htdocs/luci-static/argon/img/bg1.jpg
+      cp -f $BASE_PATH/argon/img/argon.svg $dst_theme_path/htdocs/luci-static/argon/img/argon.svg
+      cp -f $BASE_PATH/argon/favicon.ico $dst_theme_path/htdocs/luci-static/argon/favicon.ico
+      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $dst_theme_path/htdocs/luci-static/argon/icon/android-icon-192x192.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $dst_theme_path/htdocs/luci-static/argon/icon/apple-icon-144x144.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $dst_theme_path/htdocs/luci-static/argon/icon/apple-icon-60x60.png
+      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $dst_theme_path/htdocs/luci-static/argon/icon/apple-icon-72x72.png
+      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $dst_theme_path/htdocs/luci-static/argon/icon/favicon-16x16.png
+      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $dst_theme_path/htdocs/luci-static/argon/icon/favicon-32x32.png
+      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $dst_theme_path/htdocs/luci-static/argon/icon/favicon-96x96.png
+      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $dst_theme_path/htdocs/luci-static/argon/icon/ms-icon-144x144.png
+      echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
+    fi
 }
 
 remove_attendedsysupgrade() {

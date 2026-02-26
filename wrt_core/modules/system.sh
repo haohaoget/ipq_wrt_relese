@@ -11,35 +11,6 @@ fix_default_set() {
         find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/LibWrt/OpenWrt/g" {} \;
         find "$BUILD_DIR/package/base-files/files/bin/" -type f -name "config_generate" -exec sed -i "s/ImmortalWrt/OpenWrt/g" {} \;
     fi
-    # 修改主题背景
-    if [ -d "$BUILD_DIR/feeds/luci/themes/luci-theme-argon" ]; then
-      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
-      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
-      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
-      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
-      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
-      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
-      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
-      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
-      echo "完成feeds/luci/themes/luci-theme-argon修改主题背景"
-    fi
-    if [ -d "$BUILD_DIR/feeds/small8/luci-theme-argon" ]; then
-      cp -f $BASE_PATH/argon/img/bg1.jpg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
-      cp -f $BASE_PATH/argon/img/argon.svg $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/img/argon.svg
-      cp -f $BASE_PATH/argon/favicon.ico $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/favicon.ico
-      cp -f $BASE_PATH/argon/icon/android-icon-192x192.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/android-icon-192x192.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-144x144.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-60x60.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-60x60.png
-      cp -f $BASE_PATH/argon/icon/apple-icon-72x72.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/apple-icon-72x72.png
-      cp -f $BASE_PATH/argon/icon/favicon-16x16.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-16x16.png
-      cp -f $BASE_PATH/argon/icon/favicon-32x32.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-32x32.png
-      cp -f $BASE_PATH/argon/icon/favicon-96x96.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/favicon-96x96.png
-      cp -f $BASE_PATH/argon/icon/ms-icon-144x144.png $BUILD_DIR/feeds/small8/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
-      echo "完成feeds/small8/luci-theme-argon修改主题背景"
-    fi
     # install -Dm544 "$BASE_PATH/patches/990_set_argon_primary" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/990_set_argon_primary"
     install -Dm544 "$BASE_PATH/patches/991_custom_settings" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/991_custom_settings"
     # install -Dm544 "$BASE_PATH/patches/992_set-wifi-uci.sh" "$BUILD_DIR/package/base-files/files/etc/uci-defaults/992_set-wifi-uci.sh"
