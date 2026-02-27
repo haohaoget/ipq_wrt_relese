@@ -42,6 +42,7 @@ main() {
     remove_unwanted_packages
     remove_tweaked_packages
     update_homeproxy
+    update_tailscale
     fix_default_set
     fix_miniupnpd
     update_golang

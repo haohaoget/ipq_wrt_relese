@@ -80,7 +80,7 @@ install_small8() {
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
         tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config \
-        qbittorrent luci-app-qbittorrent
+        qbittorrent rblibtorrent qt6tools qt6base luci-app-qbittorrent
 }
 
 install_passwall() {
@@ -152,6 +152,43 @@ update_homeproxy() {
             exit 1
         fi
     fi
+}
+
+update_tailscale() {
+    # 官方 packages 大仓库地址
+    local repo_url="https://github.com/openwrt/packages.git"
+    # 你要替换的 small8 源里面的 tailscale 路径
+    local target_dir="$BUILD_DIR/feeds/small8/tailscale" 
+    # 源码在大仓库里的实际相对路径
+    local sub_dir="net/tailscale"
+    # 设置一个临时克隆目录
+    local tmp_dir="$BUILD_DIR/tmp_tailscale_clone"
+
+    # 1. 如果存在旧的，先删掉
+    if [ -d "$target_dir" ]; then
+        echo "正在从 feeds/small8 删除旧版 tailscale..."
+        rm -rf "$target_dir"
+    fi
+
+    echo "正在使用稀疏克隆(sparse-checkout)拉取最新版 tailscale..."
+    
+    # 2. 初始化并拉取仓库的骨架（不下载具体文件，极速）
+    rm -rf "$tmp_dir"
+    if ! git clone --depth 1 --filter=blob:none --sparse "$repo_url" "$tmp_dir"; then
+        echo "错误：从 $repo_url 拉取仓库骨架失败" >&2
+        exit 1
+    fi
+
+    # 3. 告诉 Git 我们只需要 net/tailscale 这一个文件夹
+    git -C "$tmp_dir" sparse-checkout set "$sub_dir"
+
+    # 4. 将下载好的子文件夹移动到我们真正需要的目标路径
+    mv "$tmp_dir/$sub_dir" "$target_dir"
+
+    # 5. 清除临时文件夹的残留
+    rm -rf "$tmp_dir"
+    
+    echo "tailscale 更新完成！"
 }
 
 add_podman() {
