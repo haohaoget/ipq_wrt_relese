@@ -5,7 +5,7 @@ remove_unwanted_packages() {
         "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
         "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"
         "luci-app-haproxy-tcp" "luci-app-openclash" "luci-app-mihomo" "luci-app-appfilter"
-        "luci-app-msd_lite" "luci-app-unblockneteasemusic"
+        "luci-app-msd_lite" "luci-app-unblockneteasemusic" "luci-app-qbittorrent"
     )
     local packages_net=(
         "haproxy" "xray-core" "xray-plugin" "dns2socks" "alist" "hysteria"
@@ -17,9 +17,12 @@ remove_unwanted_packages() {
     local packages_utils=(
         "cups"
     )
+    local packages_libs=(
+        "libtorrent"
+    )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
-        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier"
+        "alist" "opkg" "smartdns" "luci-app-smartdns" "easytier" "tailscale"
     )
 
     for pkg in "${luci_packages[@]}"; do
@@ -40,6 +43,12 @@ remove_unwanted_packages() {
     for pkg in "${packages_utils[@]}"; do
         if [[ -d ./feeds/packages/utils/$pkg ]]; then
             \rm -rf ./feeds/packages/utils/$pkg
+        fi
+    done
+
+    for pkg in "${packages_libs[@]}"; do
+        if [[ -d ./feeds/packages/libs/$pkg ]]; then
+            \rm -rf ./feeds/packages/libs/$pkg
         fi
     done
 
@@ -70,7 +79,7 @@ update_golang() {
 }
 
 install_small8() {
-    # quickstart luci-app-quickstart luci-app-istorex 
+    # quickstart luci-app-quickstart luci-app-istorex qbittorrent libtorrent-rasterbar rblibtorrent qt6tools qt6base luci-app-qbittorrent
     ./scripts/feeds install -p small8 -f xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
@@ -78,9 +87,9 @@ install_small8() {
         luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store \
         luci-app-cloudflarespeedtest netdata luci-app-netdata \
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
-        tailscale luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
-        msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config \
-        qbittorrent rblibtorrent qt6tools qt6base luci-app-qbittorrent
+        luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
+        msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config
+        
 }
 
 install_passwall() {
@@ -155,12 +164,40 @@ update_homeproxy() {
 }
 
 update_tailscale() {
-    # 官方 packages 大仓库地址
-    local repo_url="https://github.com/openwrt/packages.git"
+    # 处理 UPX 压缩工具依赖
+    echo "正在检查并配置 UPX 压缩工具依赖..."
+    local upx_dir="$BUILD_DIR/upx"
+    local upx_path="$upx_dir/upx"
+
+    if [ ! -x "$upx_path" ]; then
+        mkdir -p "$upx_dir"
+        
+        # 检查系统全局是否已经安装了 upx
+        if ! command -v upx &> /dev/null; then
+            echo "系统未安装 upx, 正在尝试通过 apt-get 自动安装..."
+            # 这里的 || true 是为了防止网络卡顿时 update 报错导致整个脚本退出
+            sudo apt-get update -y || true
+            sudo apt-get install -y upx-ucl
+        fi
+        
+        # 找到系统 upx 的绝对路径，并建立 Makefile 需要的软链接
+        local sys_upx=$(command -v upx)
+        if [ -n "$sys_upx" ]; then
+            ln -sf "$sys_upx" "$upx_path"
+            echo "✔ 成功创建 UPX 软链接: $sys_upx -> $upx_path"
+        else
+            echo "❌ 警告: UPX 安装失败或未找到，稍后的编译可能仍然会报错！" >&2
+        fi
+    else
+        echo "✔ UPX 工具已就绪 ($upx_path)"
+    fi
+
+    # 使用GuNanOvO/openwrt-tailscale的tailscale 
+    local repo_url="https://github.com/GuNanOvO/openwrt-tailscale.git"
     # 你要替换的 small8 源里面的 tailscale 路径
     local target_dir="$BUILD_DIR/feeds/small8/tailscale" 
     # 源码在大仓库里的实际相对路径
-    local sub_dir="net/tailscale"
+    local sub_dir="package/tailscale"
     # 设置一个临时克隆目录
     local tmp_dir="$BUILD_DIR/tmp_tailscale_clone"
 
@@ -172,20 +209,20 @@ update_tailscale() {
 
     echo "正在使用稀疏克隆(sparse-checkout)拉取最新版 tailscale..."
     
-    # 2. 初始化并拉取仓库的骨架（不下载具体文件，极速）
+    # 初始化并拉取仓库的骨架（不下载具体文件，极速）
     rm -rf "$tmp_dir"
     if ! git clone --depth 1 --filter=blob:none --sparse "$repo_url" "$tmp_dir"; then
         echo "错误：从 $repo_url 拉取仓库骨架失败" >&2
         exit 1
     fi
 
-    # 3. 告诉 Git 我们只需要 net/tailscale 这一个文件夹
+    # 告诉 Git 我们只需要 net/tailscale 这一个文件夹
     git -C "$tmp_dir" sparse-checkout set "$sub_dir"
 
-    # 4. 将下载好的子文件夹移动到我们真正需要的目标路径
+    # 将下载好的子文件夹移动到我们真正需要的目标路径
     mv "$tmp_dir/$sub_dir" "$target_dir"
 
-    # 5. 清除临时文件夹的残留
+    # 清除临时文件夹的残留
     rm -rf "$tmp_dir"
     
     echo "tailscale 更新完成！"
@@ -198,6 +235,28 @@ add_podman() {
     echo "正在添加 luci-app-podman..."
     if ! git clone --depth 1 "$repo_url" "$podman_dir"; then
         echo "错误：从 $repo_url 克隆 openwrt-podman 仓库失败" >&2
+        exit 1
+    fi
+}
+
+add_dufs() {
+    local dufs_dir="$BUILD_DIR/package/luci-app-dufs"
+    local repo_url="https://github.com/zouzonghao/luci-app-dufs.git"
+    rm -rf "$dufs_dir" 2>/dev/null
+    echo "正在添加 luci-app-dufs..."
+    if ! git clone --depth 1 "$repo_url" "$dufs_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-app-dufs 仓库失败" >&2
+        exit 1
+    fi
+}
+
+add_qbittorrentstatic() {
+    local qbittorrentstatic_dir="$BUILD_DIR/package/luci-app-qbittorrent-static"
+    local repo_url="https://github.com/haohaoget/luci-app-qbittorrent-static.git"
+    rm -rf "$qbittorrentstatic_dir" 2>/dev/null
+    echo "正在添加 luci-app-qbittorrent-static..."
+    if ! git clone --depth 1 "$repo_url" "$qbittorrentstatic_dir"; then
+        echo "错误：从 $repo_url 克隆 luci-app-qbittorrent-static 仓库失败" >&2
         exit 1
     fi
 }
