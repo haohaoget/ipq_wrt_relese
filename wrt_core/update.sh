@@ -33,6 +33,8 @@ source "$SCRIPT_DIR/modules/general.sh"
 source "$SCRIPT_DIR/modules/feeds.sh"
 source "$SCRIPT_DIR/modules/packages.sh"
 source "$SCRIPT_DIR/modules/system.sh"
+source "$SCRIPT_DIR/modules/cups.sh"
+
 
 main() {
     clone_repo
@@ -48,6 +50,8 @@ main() {
     update_golang
     change_dnsmasq2full
     fix_mk_def_depends
+
+    install_libubox_cmake_patch
     update_default_lan_addr
     remove_something_nss_kmod
     update_affinity_script
@@ -69,7 +73,6 @@ main() {
     # fix_quickstart
     update_oaf_deconfig
     add_timecontrol
-    add_gecoosac
     add_podman
 	add_qbittorrentstatic
 	add_dufs
@@ -88,6 +91,7 @@ main() {
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
     install_feeds
+    fix_cups_libcups_avahi_depends
     fix_easytier_lua
     update_adguardhome
     update_script_priority
