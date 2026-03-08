@@ -106,5 +106,5 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ env.BUILD_DATE }}_${{ inputs.model }}
+          name: ${{ env.BUILD_DATE }}_${{ inputs.model }}(apk)
           path: ./firmware/*.*
