@@ -163,6 +163,43 @@ update_homeproxy() {
     fi
 }
 
+update_nikki() {
+    local nikki_repo_url="https://github.com/nikkinikki-org/OpenWrt-nikki.git"
+    local target_small8_dir="$BUILD_DIR/feeds/small8"
+    local nikki_dir="$target_small8_dir/nikki"
+    local luci_app_nikki_dir="$target_small8_dir/luci-app-nikki"
+
+    if [ -d "$target_small8_dir" ]; then
+        local tmp_dir
+        tmp_dir=$(mktemp -d)
+
+        echo "正在从 $nikki_repo_url 稀疏检出 luci-app-nikki 和 nikki..."
+
+        if ! git clone --depth 1 --filter=blob:none --no-checkout "$nikki_repo_url" "$tmp_dir"; then
+            echo "错误：从 $nikki_repo_url 克隆仓库失败" >&2
+            rm -rf "$tmp_dir"
+            return 0
+        fi
+
+        pushd "$tmp_dir" >/dev/null
+        git sparse-checkout init --cone
+        git sparse-checkout set luci-app-nikki nikki || {
+            echo "错误：稀疏检出 luci-app-nikki 或 nikki 失败" >&2
+            popd >/dev/null
+            rm -rf "$tmp_dir"
+            return 0
+        }
+        git checkout --quiet
+
+        \cp -rf "$tmp_dir/luci-app-nikki/." "$luci_app_nikki_dir/"
+        \cp -rf "$tmp_dir/nikki/." "$nikki_dir/"
+
+        popd >/dev/null
+        rm -rf "$tmp_dir"
+        echo "luci-app-nikki 和 nikki 源代码更新完成。"
+    fi
+}
+
 update_tailscale() {
     # 处理 UPX 压缩工具依赖
     echo "正在检查并配置 UPX 压缩工具依赖..."
