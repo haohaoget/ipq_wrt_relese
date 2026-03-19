@@ -258,7 +258,11 @@ update_tailscale() {
 
     # 将下载好的子文件夹移动到我们真正需要的目标路径
     mv "$tmp_dir/$sub_dir" "$target_dir"
-
+    # 修改 Makefile（删除包含 /builder 的行）
+    if ! sed -i '/\/builder/d' "$target_dir/Makefile"; then
+        echo "错误：修改 Makefile 失败" >&2
+        exit 1
+    fi
     # 清除临时文件夹的残留
     rm -rf "$tmp_dir"
     
