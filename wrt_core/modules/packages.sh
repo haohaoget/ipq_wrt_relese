@@ -87,7 +87,7 @@ install_small8() {
         luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store \
         luci-app-cloudflarespeedtest netdata luci-app-netdata \
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic nikki luci-app-nikki \
-        luci-app-tailscale oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
+        oaf open-app-filter luci-app-oaf easytier luci-app-easytier \
         msd_lite luci-app-msd_lite cups luci-app-cupsd luci-theme-argon luci-app-argon-config
         
 }
@@ -231,8 +231,8 @@ update_tailscale() {
 
     # 使用GuNanOvO/openwrt-tailscale的tailscale 
     local repo_url="https://github.com/GuNanOvO/openwrt-tailscale.git"
-    # 你要替换的 small8 源里面的 tailscale 路径
-    local target_dir="$BUILD_DIR/feeds/small8/tailscale" 
+    # tailscale 路径
+    local target_dir="$BUILD_DIR/package/tailscale" 
     # 源码在大仓库里的实际相对路径
     local sub_dir="package/tailscale"
     # 设置一个临时克隆目录
@@ -240,7 +240,7 @@ update_tailscale() {
 
     # 1. 如果存在旧的，先删掉
     if [ -d "$target_dir" ]; then
-        echo "正在从 feeds/small8 删除旧版 tailscale..."
+        echo "正在从 $target_dir 删除旧的 tailscale..."
         rm -rf "$target_dir"
     fi
 
@@ -253,7 +253,7 @@ update_tailscale() {
         exit 1
     fi
 
-    # 告诉 Git 我们只需要 net/tailscale 这一个文件夹
+    # 告诉 Git 我们只需要 package/tailscale 这一个文件夹
     git -C "$tmp_dir" sparse-checkout set "$sub_dir"
 
     # 将下载好的子文件夹移动到我们真正需要的目标路径
