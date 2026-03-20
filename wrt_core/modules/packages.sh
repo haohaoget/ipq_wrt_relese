@@ -18,7 +18,7 @@ remove_unwanted_packages() {
         "cups"
     )
     local packages_libs=(
-        "libtorrent"
+        ""
     )
     local small8_packages=(
         "ppp" "firewall" "dae" "daed" "daed-next" "libnftnl" "nftables" "dnsmasq" "luci-app-alist"
