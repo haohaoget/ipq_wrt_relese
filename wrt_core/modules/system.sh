@@ -239,26 +239,38 @@ apply_passwall_tweaks() {
     fi
 }
 
-install_opkg_distfeeds() {
+install_apk_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
-    local distfeeds_conf="$emortal_def_dir/files/99-distfeeds.conf"
+    local distfeeds_list="$emortal_def_dir/files/99-customfeeds.list"
 
-    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
-        cat <<'EOF' >"$distfeeds_conf"
-src/gz openwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/base/
-src/gz openwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/luci/
-src/gz openwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/packages/
-src/gz openwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing/
-src/gz openwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony/
+    if[ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
+        
+        # 1. 创建带有注释的 apk 源文件
+        cat <<'EOF' >"$distfeeds_list"
+# openwrt_base
+https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/base/packages.adb
+
+# openwrt_luci
+https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/luci/packages.adb
+
+# openwrt_packages
+https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/packages/packages.adb
+
+# openwrt_routing
+https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/routing/packages.adb
+
+# openwrt_telephony
+https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/telephony/packages.adb
 EOF
 
+        # 2. 修改 Makefile，打包进路由器的 /etc/apk/repositories.d/ 目录下
         sed -i "/define Package\/default-settings\/install/a\\
-\\t\$(INSTALL_DIR) \$(1)/etc\\n\
-\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" $emortal_def_dir/Makefile
+\\t\$(INSTALL_DIR) \$(1)/etc/apk/repositories.d\\n\
+\t\$(INSTALL_DATA) ./files/99-customfeeds.list \$(1)/etc/apk/repositories.d/customfeeds.list\n" "$emortal_def_dir/Makefile"
 
-        sed -i "/exit 0/i\\
-[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\n\
-sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" $emortal_def_dir/files/99-default-settings
+        # 3. 修改首次开机脚本，开机时自动覆盖系统的默认源文件
+        sed -i "/exit 0/i\\[ -f \'/etc/apk/repositories.d/customfeeds.list\' ] && mv \'/etc/apk/repositories.d/customfeeds.list\' \'/etc/apk/repositories.d/distfeeds.list\'\n" "$emortal_def_dir/files/99-default-settings"
+
     fi
 }
 

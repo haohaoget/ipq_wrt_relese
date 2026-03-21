@@ -88,7 +88,7 @@ main() {
     update_argon
     update_nginx_ubus_module
     check_default_settings
-    install_opkg_distfeeds
+    install_apk_distfeeds
     fix_easytier_mk
     remove_attendedsysupgrade
     fix_kconfig_recursive_dependency
@@ -99,7 +99,7 @@ main() {
     update_script_priority
     update_geoip
     fix_openssl_ktls
-    fix_opkg_check
+    # fix_opkg_check
     fix_quectel_cm
     install_pbr_cmcc
     fix_pbr_ip_forward
