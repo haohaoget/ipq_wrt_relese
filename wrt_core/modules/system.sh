@@ -243,7 +243,7 @@ install_apk_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
     local distfeeds_list="$emortal_def_dir/files/99-customfeeds.list"
 
-    if[ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
+    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
         
         # 1. 创建带有注释的 apk 源文件
         cat <<'EOF' >"$distfeeds_list"
