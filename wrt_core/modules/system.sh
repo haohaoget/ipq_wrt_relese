@@ -241,36 +241,68 @@ apply_passwall_tweaks() {
 
 install_apk_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
-    local distfeeds_list="$emortal_def_dir/files/99-customfeeds.list"
+    local distfeeds_list="$emortal_def_dir/files/99-distfeeds.list"
+    local customfeeds_list="$emortal_def_dir/files/99-customfeeds.list"
+    local default_settings_file="$emortal_def_dir/files/99-default-settings"
 
-    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
-        
-        # 1. 创建带有注释的 apk 源文件
+    if [ -d "$emortal_def_dir" ]; then
+        # 1. 生成官方源列表 (带 aarch64_cortex-a53 占位符，首次开机会被动态替换)
         cat <<'EOF' >"$distfeeds_list"
 # openwrt_base
-https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/base/packages.adb
-
+https://mirrors.vsean.net/openwrt/snapshots/packages/aarch64_cortex-a53/base/packages.adb
 # openwrt_luci
-https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/luci/packages.adb
-
+https://mirrors.vsean.net/openwrt/snapshots/packages/aarch64_cortex-a53/luci/packages.adb
 # openwrt_packages
-https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/packages/packages.adb
-
+https://mirrors.vsean.net/openwrt/snapshots/packages/aarch64_cortex-a53/packages/packages.adb
 # openwrt_routing
-https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/routing/packages.adb
-
+https://mirrors.vsean.net/openwrt/snapshots/packages/aarch64_cortex-a53/routing/packages.adb
 # openwrt_telephony
-https://downloads.immortalwrt.org/releases/25.12-SNAPSHOT/packages/aarch64_cortex-a53/telephony/packages.adb
+https://mirrors.vsean.net/openwrt/snapshots/packages/aarch64_cortex-a53/telephony/packages.adb
 EOF
 
-        # 2. 修改 Makefile，打包进路由器的 /etc/apk/repositories.d/ 目录下
+        # 2. 生成第三方扩展源列表
+        cat <<'EOF' >"$customfeeds_list"
+https://fantastic-packages.github.io/releases/25.12/packages/aarch64_cortex-a53/packages/packages.adb
+EOF
+
+        # 3. 下载第三方源的公钥证书并重命名为 pem 格式，放入 files 目录
+        local pubkey_url="https://fantastic-packages.github.io/releases/25.12/20241123170031.pub"
+        local dest_pem="$emortal_def_dir/files/fantastic-packages.pem"
+        echo "正在下载 fantastic-packages 公钥..."
+        if command -v curl >/dev/null 2>&1; then
+            # 利用 curl 自身的重试机制辅助下载
+            curl -sSL --retry 3 -o "$dest_pem" "$pubkey_url"
+        else
+            wget -qO "$dest_pem" "$pubkey_url"
+        fi
+
+        if [ -s "${dest_pem}" ]; then
+            echo "APK 软件源及公钥注入成功！将随 files/ 目录直接合并至目标固件中。"
+        else
+            echo "警告：公钥下载失败，请检查构建宿主机的网络连接。"
+        fi
+
+        # 4. 修改 Makefile，将文件拷贝到构建镜像的临时和对应目录
+        # 公钥直接安装到 /etc/apk/keys/；源列表暂时放在 /etc/ 防止编译冲突
         sed -i "/define Package\/default-settings\/install/a\\
-\\t\$(INSTALL_DIR) \$(1)/etc/apk/repositories.d\\n\
-\t\$(INSTALL_DATA) ./files/99-customfeeds.list \$(1)/etc/apk/repositories.d/customfeeds.list\n" "$emortal_def_dir/Makefile"
+\\t\$(INSTALL_DIR) \$(1)/etc \$(1)/etc/apk/keys\\n\
+\\t\$(INSTALL_DATA) ./files/99-distfeeds.list \$(1)/etc/99-distfeeds.list\\n\
+\\t\$(INSTALL_DATA) ./files/99-customfeeds.list \$(1)/etc/99-customfeeds.list\\n\
+\\t\$(INSTALL_DATA) ./files/fantastic-packages.pem \$(1)/etc/apk/keys/fantastic-packages.pem\\n" "$emortal_def_dir/Makefile"
 
-        # 3. 修改首次开机脚本，开机时自动覆盖系统的默认源文件
-        sed -i "/exit 0/i\\[ -f \'/etc/apk/repositories.d/customfeeds.list\' ] && mv \'/etc/apk/repositories.d/customfeeds.list\' \'/etc/apk/repositories.d/distfeeds.list\'\n" "$emortal_def_dir/files/99-default-settings"
-
+        # 5. 在 99-default-settings (首次启动脚本) 中注入动态架构替换逻辑
+        # 读取 /etc/apk/arch，将占位符替换为真实架构，然后覆盖到 APK 的配置目录
+        sed -i "/exit 0/i\\
+[ -f '/etc/apk/arch' ] && APK_ARCH=\$(cat /etc/apk/arch)\\n\
+mkdir -p /etc/apk/repositories.d\\n\
+if [ -f '/etc/99-distfeeds.list' ]; then\\n\
+\\tsed \"s/aarch64_cortex-a53/\${APK_ARCH}/g\" '/etc/99-distfeeds.list' > '/etc/apk/repositories.d/distfeeds.list'\\n\
+\\trm -f '/etc/99-distfeeds.list'\\n\
+fi\\n\
+if [ -f '/etc/99-customfeeds.list' ]; then\\n\
+\\tsed \"s/aarch64_cortex-a53/\${APK_ARCH}/g\" '/etc/99-customfeeds.list' > '/etc/apk/repositories.d/customfeeds.list'\\n\
+\\trm -f '/etc/99-customfeeds.list'\\n\
+fi\\n" "$default_settings_file"
     fi
 }
 
