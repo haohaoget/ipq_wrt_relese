@@ -159,7 +159,7 @@ jobs:
         if: ${{ inputs.model == 'n1_immwrt' }}
         uses: unifreq/openwrt_packit@master
         env:
-          OPENWRT_ARMVIRT: firmware/*.tar.gz
+          OPENWRT_ARMVIRT: firmware/*-generic-rootfs.tar.gz
           PACKAGE_SOC: s905d
           GZIP_IMGS: .xz
           SCRIPT_DIY_PATH: wrt_core/patches/mk_s905d_n1.sh
