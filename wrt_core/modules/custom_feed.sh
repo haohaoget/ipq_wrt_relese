@@ -159,16 +159,13 @@ install_custom_feed() {
         xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
-        v2dat netdata luci-app-netdata cups luci-app-cupsd \
-        luci-app-ddns-go taskd luci-lib-xterm luci-lib-taskd luci-app-store quickstart \
-        luci-app-quickstart luci-app-istorex luci-app-cloudflarespeedtest netdata luci-app-netdata \
+        v2dat cups luci-app-cupsd\
         lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic \
-        luci-theme-argon luci-app-argon-config easytier luci-app-easytier
+        luci-theme-argon luci-app-argon-config easytier luci-app-easytier 
     )
     local required_feed_dirs=(
-        cups tcping v2ray-geodata luci-app-openclash luci-app-homeproxy 
-        lucky luci-app-lucky luci-app-easytier luci-app-emmc-health 
-        luci-app-passwall nikki luci-app-nikki mihomo-meta
+        cups tcping v2ray-geodata luci-app-openclash luci-app-homeproxy luci-app-emmc-health 
+        lucky luci-app-lucky luci-app-easytier luci-app-passwall nikki luci-app-nikki mihomo-meta
     )
     local custom_feed_sources=()
     local missing_feed_dirs=()
