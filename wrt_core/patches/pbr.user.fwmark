@@ -1,0 +1,5 @@
+#!/bin/sh
+# tailscale use China Mobile (CMCC) addresses for NAT traversal
+
+ip rule del fwmark 0x80000/0xff0000 lookup pbr_wan_cmcc prio 5100 2>/dev/null
+ip rule add fwmark 0x80000/0xff0000 lookup pbr_wan_cmcc prio 5100

@@ -255,11 +255,14 @@ install_pbr_cmcc() {
         echo "正在安装 PBR CMCC 配置文件..."
         install -Dm644 "$BASE_PATH/patches/pbr.user.cmcc" "$pbr_dir/pbr.user.cmcc"
         install -Dm644 "$BASE_PATH/patches/pbr.user.cmcc6" "$pbr_dir/pbr.user.cmcc6"
+        echo "正在安装 PBR fwmark 配置文件..."
+        install -Dm644 "$BASE_PATH/patches/pbr.user.fwmark" "$pbr_dir/pbr.user.fwmark"
 
         if [ -f "$pbr_makefile" ]; then
             if ! grep -q "pbr.user.cmcc" "$pbr_makefile"; then
                 echo "正在修改 PBR Makefile 添加安装规则..."
                 sed -i '/pbr.user.netflix.*\$(1)/a\
+    $(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.fwmark $(1)/usr/share/pbr/pbr.user.fwmark\
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc $(1)/usr/share/pbr/pbr.user.cmcc\
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc6 $(1)/usr/share/pbr/pbr.user.cmcc6' "$pbr_makefile"
             fi
@@ -271,6 +274,10 @@ install_pbr_cmcc() {
             echo "正在添加 PBR CMCC 配置条目..."
             sed -i "/option path '\/usr\/share\/pbr\/pbr.user.netflix'/,/option enabled '0'/{
                 /option enabled '0'/a\\
+\\
+config include\\
+	option path '/usr/share/pbr/pbr.user.fwmark'\\
+	option enabled '0'\\
 \\
 config include\\
 	option path '/usr/share/pbr/pbr.user.cmcc'\\
