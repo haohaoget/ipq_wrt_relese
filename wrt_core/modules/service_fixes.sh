@@ -283,7 +283,7 @@ install_pbr_cmcc() {
             if ! grep -q "pbr.user.cmcc" "$pbr_makefile"; then
                 echo "正在修改 PBR Makefile 添加安装规则..."
                 sed -i '/pbr.user.netflix.*\$(1)/a\
-    $(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.fwmark $(1)/usr/share/pbr/pbr.user.fwmark\
+	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.fwmark $(1)/usr/share/pbr/pbr.user.fwmark\
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc $(1)/usr/share/pbr/pbr.user.cmcc\
 	$(INSTALL_DATA) ./files/usr/share/pbr/pbr.user.cmcc6 $(1)/usr/share/pbr/pbr.user.cmcc6' "$pbr_makefile"
             fi
