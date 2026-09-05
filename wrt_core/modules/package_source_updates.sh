@@ -171,6 +171,7 @@ add_dufs() {
         echo "错误：从 $repo_url 克隆 luci-app-dufs 仓库失败" >&2
         exit 1
     fi
+
 }
 
 add_qbittorrentstatic() {
@@ -181,6 +182,31 @@ add_qbittorrentstatic() {
     if ! git clone --depth 1 "$repo_url" "$qbittorrentstatic_dir"; then
         echo "错误：从 $repo_url 克隆 luci-app-qbittorrent-static 仓库失败" >&2
         exit 1
+    fi
+}
+
+add_smart_srun() {
+    local smart_srun_dir="$BUILD_DIR/package/smart-srun"
+    local repo_url="https://github.com/matthewlu070111/smart-srun.git"
+    local target_version="1.5.0"
+    
+    rm -rf "$smart_srun_dir" 2>/dev/null
+    echo "正在添加 smart-srun..."
+    if ! git clone --depth 1 "$repo_url" "$smart_srun_dir"; then
+        echo "错误：从 $repo_url 克隆 smart-srun 仓库失败" >&2
+        exit 1
+    fi
+
+    local makefile="$smart_srun_dir/Makefile"
+    if [ -f "$makefile" ]; then
+        if grep -q "PKG_VERSION:=" "$makefile"; then
+            # 存在 PKG_VERSION，将其值为 0.0.0 的替换为目标版本号
+            sed -i "s/PKG_VERSION:=0.0.0/PKG_VERSION:=${target_version}/g" "$makefile"
+        else
+            # 完全没有 PKG_VERSION，则在 PKG_NAME 下方追加一行
+            sed -i "/PKG_NAME:=/a PKG_VERSION:=${target_version}" "$makefile"
+        fi
+        echo "已将 $makefile 中的 PKG_VERSION 校验并设置为 ${target_version}"
     fi
 }
 
