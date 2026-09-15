@@ -188,7 +188,7 @@ add_qbittorrentstatic() {
 add_smart_srun() {
     local smart_srun_dir="$BUILD_DIR/package/smart-srun"
     local repo_url="https://github.com/matthewlu070111/smart-srun.git"
-    local target_version="1.5.0"
+    local target_version="1.6.0"
     
     rm -rf "$smart_srun_dir" 2>/dev/null
     echo "正在添加 smart-srun..."
