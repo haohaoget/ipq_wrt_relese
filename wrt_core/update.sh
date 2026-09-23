@@ -102,6 +102,8 @@ stage_pre_install_source_fixes() {
     add_timecontrol
     # add_podman
 	add_qbittorrentstatic
+    add_open_nexttrace
+    add_stuntman
     add_smart_srun
 	# add_dufs
     # add_quickfile

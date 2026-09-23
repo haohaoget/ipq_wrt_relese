@@ -185,6 +185,74 @@ add_qbittorrentstatic() {
     fi
 }
 
+add_open_nexttrace() {
+    local repo_url="https://github.com/haohaoget/luci-app-open_nexttrace.git"
+    local target_dir="$BUILD_DIR/package/open-nexttrace"
+    local tmp_dir
+    local pkg
+
+    tmp_dir=$(mktemp -d) || return 1
+    echo "正在添加 luci-app-open_nexttrace 和 open-nexttrace-core..."
+
+    if ! git_retry clone --depth 1 --filter=blob:none --sparse -b main "$repo_url" "$tmp_dir"; then
+        echo "错误：从 $repo_url 克隆仓库失败" >&2
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    if ! git_retry -C "$tmp_dir" sparse-checkout set luci-app-open_nexttrace open-nexttrace-core; then
+        echo "错误：稀疏检出 NextTrace 软件包失败" >&2
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    for pkg in luci-app-open_nexttrace open-nexttrace-core; do
+        if [ ! -f "$tmp_dir/$pkg/Makefile" ]; then
+            echo "错误：NextTrace 仓库缺少 $pkg/Makefile" >&2
+            rm -rf "$tmp_dir"
+            return 1
+        fi
+    done
+
+    mkdir -p "$target_dir"
+    for pkg in luci-app-open_nexttrace open-nexttrace-core; do
+        rm -rf "$target_dir/$pkg"
+        if ! mv "$tmp_dir/$pkg" "$target_dir/$pkg"; then
+            echo "错误：无法安装 NextTrace 软件包 $pkg" >&2
+            rm -rf "$tmp_dir"
+            return 1
+        fi
+    done
+    rm -rf "$tmp_dir"
+}
+
+add_stuntman() {
+    local repo_url="https://github.com/muink/openwrt-stuntman.git"
+    local target_dir="$BUILD_DIR/package/stuntman"
+    local tmp_dir
+
+    tmp_dir=$(mktemp -d) || return 1
+    echo "正在添加 stuntman-client..."
+
+    if ! git_retry clone --depth 1 -b master "$repo_url" "$tmp_dir"; then
+        echo "错误：从 $repo_url 克隆仓库失败" >&2
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    if [ ! -f "$tmp_dir/Makefile" ] || ! grep -q 'BuildPackage,\$(PKG_NAME)-client' "$tmp_dir/Makefile"; then
+        echo "错误：Stuntman 仓库缺少 stuntman-client 软件包定义" >&2
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    rm -rf "$tmp_dir/.git"
+    rm -rf "$target_dir"
+    if ! mv "$tmp_dir" "$target_dir"; then
+        echo "错误：无法安装 stuntman-client 软件包" >&2
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+}
+
 add_smart_srun() {
     local smart_srun_dir="$BUILD_DIR/package/smart-srun"
     local repo_url="https://github.com/matthewlu070111/smart-srun.git"
