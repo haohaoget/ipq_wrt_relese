@@ -256,7 +256,7 @@ add_stuntman() {
 add_smart_srun() {
     local smart_srun_dir="$BUILD_DIR/package/smart-srun"
     local repo_url="https://github.com/matthewlu070111/smart-srun.git"
-    local target_version="1.6.0"
+    local target_version="2.0.2"
     
     rm -rf "$smart_srun_dir" 2>/dev/null
     echo "正在添加 smart-srun..."
