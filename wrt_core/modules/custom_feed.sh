@@ -156,7 +156,7 @@ install_custom_feed() {
     local custom_feed_name
 
     local base_custom_feed_packages=(
-        xray-core xray-plugin dns2tcp dns2socks haproxy hysteria \
+        dns2tcp dns2socks haproxy hysteria \
         naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat cups luci-app-cupsd\
@@ -165,7 +165,7 @@ install_custom_feed() {
     )
     local required_feed_dirs=(
         cups tcping v2ray-geodata luci-app-openclash luci-app-homeproxy luci-app-emmc-health 
-        lucky luci-app-lucky luci-app-easytier luci-app-passwall nikki luci-app-nikki mihomo-meta
+        lucky luci-app-lucky luci-app-easytier luci-app-passwall xray-core xray-plugin nikki luci-app-nikki mihomo-meta
     )
     local custom_feed_sources=()
     local missing_feed_dirs=()
@@ -188,6 +188,7 @@ install_custom_feed() {
         "kenzok8/small-package|https://github.com/kenzok8/small-package.git||${base_custom_feed_packages[*]}"
         "sbwml/luci-app-mosdns|https://github.com/sbwml/luci-app-mosdns.git|v5|mosdns luci-app-mosdns"
         "Openwrt-Passwall/openwrt-passwall|https://github.com/Openwrt-Passwall/openwrt-passwall.git|main|luci-app-passwall"
+        "Openwrt-Passwall/openwrt-passwall-packages|https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git|main|xray-core xray-plugin"
         "nikkinikki-org/OpenWrt-nikki|https://github.com/nikkinikki-org/OpenWrt-nikki.git|main|nikki luci-app-nikki mihomo-meta"
     )
 
