@@ -6,6 +6,7 @@ set_qualcommax_nowifi() {
     [[ "${1:-}" == "jdcloud_ipq60xx_immwrt_nowifi" ]] || return 0
 
     local dts_path="$BUILD_DIR/target/linux/qualcommax/dts"
+    local kernel_dts_path="$BUILD_DIR/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom"
     local dts_files=()
     local file
     local soc
@@ -24,10 +25,13 @@ set_qualcommax_nowifi() {
         return 1
     fi
 
-    # 修改前确认替换目标存在，避免生成引用不存在文件的设备树。
+    # include 也可来自内核覆盖目录；无需与设备 DTS 存放在同一目录。
+    # 仅修改 dts_path 下的设备树，保留 nowifi 文件对原始 dtsi 的引用。
     for soc in 6018 8074; do
-        if grep -q "ipq${soc}\\.dtsi" "${dts_files[@]}" && [ ! -f "$dts_path/ipq${soc}-nowifi.dtsi" ]; then
-            echo "错误：无 Wi-Fi 构建缺少 $dts_path/ipq${soc}-nowifi.dtsi" >&2
+        if grep -q "ipq${soc}\\(-nowifi\\)\\?\\.dtsi" "${dts_files[@]}" &&
+            [ ! -f "$dts_path/ipq${soc}-nowifi.dtsi" ] &&
+            [ ! -f "$kernel_dts_path/ipq${soc}-nowifi.dtsi" ]; then
+            echo "错误：无 Wi-Fi 构建缺少 ipq${soc}-nowifi.dtsi，已检查：$dts_path 和 $kernel_dts_path" >&2
             return 1
         fi
     done
