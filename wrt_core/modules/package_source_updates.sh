@@ -488,6 +488,8 @@ update_argon() {
     echo "luci-theme-argon 更新完成"
     # 修改主题背景
     if [ -d "$dst_theme_path" ]; then
+      # Argon 3.x 默认背景改为 bg1.webp，通过本地背景目录加载自定义 JPG。
+      install -Dm644 "$BASE_PATH/argon/img/bg1.jpg" "$dst_theme_path/htdocs/luci-static/argon/background/bg1.jpg"
       cp -f $BASE_PATH/argon/img/bg1.jpg $dst_theme_path/htdocs/luci-static/argon/img/bg1.jpg
       cp -f $BASE_PATH/argon/img/argon.svg $dst_theme_path/htdocs/luci-static/argon/img/argon.svg
       cp -f $BASE_PATH/argon/favicon.ico $dst_theme_path/htdocs/luci-static/argon/favicon.ico

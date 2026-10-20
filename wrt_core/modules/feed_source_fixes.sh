@@ -3,7 +3,9 @@
 
 remove_unwanted_packages() {
     # 移除将由 custom_feed 接管或会产生冲突的上游包。
+    # Argon 3.x 已包含设置及翻译，不能再保留独立的 argon-config 包定义。
     local luci_packages=(
+        "luci-app-argon-config"
         "luci-app-wolultra"
         "luci-app-passwall" "luci-app-ddns-go" "luci-app-rclone" "luci-app-ssr-plus"
         "luci-app-vssr" "luci-app-daed" "luci-app-dae" "luci-app-alist" "luci-app-homeproxy"

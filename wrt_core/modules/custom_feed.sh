@@ -161,7 +161,7 @@ install_custom_feed() {
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat cups luci-app-cupsd\
         lucky luci-app-lucky luci-app-openclash luci-app-amlogic \
-        luci-theme-argon luci-app-argon-config easytier luci-app-easytier 
+        easytier luci-app-easytier
     )
     local required_feed_dirs=(
         sing-box luci-app-wolultra
