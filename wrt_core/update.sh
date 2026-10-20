@@ -14,6 +14,7 @@ REPO_URL=$1
 REPO_BRANCH=$2
 BUILD_DIR=$3
 COMMIT_HASH=$4
+BUILD_DEVICE=${5:-}
 
 # 转换为绝对路径，避免后续 cd 后路径失效。
 if [[ "$BUILD_DIR" != /* ]]; then
@@ -50,6 +51,7 @@ stage_repo_checkout() {
     clone_repo
     clean_up
     reset_feeds_conf
+    set_qualcommax_nowifi "$BUILD_DEVICE"
 }
 
 stage_upstream_feeds_update() {

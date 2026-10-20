@@ -1,6 +1,42 @@
 #!/usr/bin/env bash
 # target、kernel 与 base system 源码修正。
 
+set_qualcommax_nowifi() {
+    # 按设备配置名判断，兼容 CI 将 BUILD_DIR 改为 action_build。
+    [[ "${1:-}" == "jdcloud_ipq60xx_immwrt_nowifi" ]] || return 0
+
+    local dts_path="$BUILD_DIR/target/linux/qualcommax/dts"
+    local dts_files=()
+    local file
+    local soc
+
+    if [ ! -d "$dts_path" ]; then
+        echo "错误：无 Wi-Fi 构建缺少设备树目录：$dts_path" >&2
+        return 1
+    fi
+
+    while IFS= read -r -d '' file; do
+        dts_files+=("$file")
+    done < <(find "$dts_path" -type f ! -iname '*nowifi*' \( -name '*.dts' -o -name '*.dtsi' \) -print0)
+
+    if [ ${#dts_files[@]} -eq 0 ]; then
+        echo "错误：无 Wi-Fi 构建未找到设备树文件：$dts_path" >&2
+        return 1
+    fi
+
+    # 修改前确认替换目标存在，避免生成引用不存在文件的设备树。
+    for soc in 6018 8074; do
+        if grep -q "ipq${soc}\\.dtsi" "${dts_files[@]}" && [ ! -f "$dts_path/ipq${soc}-nowifi.dtsi" ]; then
+            echo "错误：无 Wi-Fi 构建缺少 $dts_path/ipq${soc}-nowifi.dtsi" >&2
+            return 1
+        fi
+    done
+
+    sed -i 's/ipq\(6018\|8074\)\.dtsi/ipq\1-nowifi.dtsi/g' "${dts_files[@]}" || return 1
+    echo "已为 jdcloud_ipq60xx_immwrt_nowifi 切换 qualcommax 无 Wi-Fi 设备树。"
+}
+
+
 fix_default_set() {
     # 注入默认主题、系统设置和目标平台通用补丁。
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
