@@ -157,13 +157,14 @@ install_custom_feed() {
 
     local base_custom_feed_packages=(
         dns2tcp dns2socks haproxy hysteria \
-        naiveproxy shadowsocks-rust sing-box v2ray-core v2ray-geodata geoview v2ray-plugin \
+        naiveproxy shadowsocks-rust v2ray-core v2ray-geodata geoview v2ray-plugin \
         tuic-client chinadns-ng ipt2socks tcping trojan-plus simple-obfs shadowsocksr-libev \
         v2dat cups luci-app-cupsd\
-        lucky luci-app-lucky luci-app-openclash luci-app-homeproxy luci-app-amlogic \
+        lucky luci-app-lucky luci-app-openclash luci-app-amlogic \
         luci-theme-argon luci-app-argon-config easytier luci-app-easytier 
     )
     local required_feed_dirs=(
+        sing-box luci-app-wolultra
         cups tcping v2ray-geodata luci-app-openclash luci-app-homeproxy luci-app-emmc-health 
         lucky luci-app-lucky luci-app-easytier luci-app-passwall xray-core xray-plugin nikki luci-app-nikki mihomo-meta
     )
@@ -186,6 +187,7 @@ install_custom_feed() {
     # 统一从外部仓库同步指定包，避免分散维护 feeds.conf。
     custom_feed_sources=(
         "kenzok8/small-package|https://github.com/kenzok8/small-package.git||${base_custom_feed_packages[*]}"
+        "VIKINGYFY/packages|https://github.com/VIKINGYFY/packages.git|main|sing-box luci-app-homeproxy luci-app-wolultra"
         "sbwml/luci-app-mosdns|https://github.com/sbwml/luci-app-mosdns.git|v5|mosdns luci-app-mosdns"
         "Openwrt-Passwall/openwrt-passwall|https://github.com/Openwrt-Passwall/openwrt-passwall.git|main|luci-app-passwall"
         "Openwrt-Passwall/openwrt-passwall-packages|https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git|main|xray-core xray-plugin"

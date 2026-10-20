@@ -72,7 +72,6 @@ stage_custom_feed_prepare() {
 
 stage_pre_install_source_fixes() {
     # 这里仅修改源码树与 feeds/*，不能依赖 package/feeds/*。
-    update_homeproxy
     add_nf_deaf
     update_tailscale
     fix_default_set
