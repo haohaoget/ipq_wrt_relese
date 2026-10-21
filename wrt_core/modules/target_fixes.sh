@@ -218,17 +218,17 @@ change_cpuusage() {
         sed -i '/cpuUsageCommand/a \\t\t\tconst fd = popen(cpuUsageCommand);' "$luci_rpc_path"
     fi
 
-    local old_script_path="$BUILD_DIR/package/base-files/files/sbin/cpuusage"
-    if [ -f "$old_script_path" ]; then
-        rm -f "$old_script_path"
-    fi
+    # local old_script_path="$BUILD_DIR/package/base-files/files/sbin/cpuusage"
+    # if [ -f "$old_script_path" ]; then
+    #     rm -f "$old_script_path"
+    # fi
 
-    if [ -d "$BUILD_DIR/target/linux/qualcommax" ]; then
-        install -Dm755 "$BASE_PATH/patches/cpuusage" "$qualcommax_sbin_dir/cpuusage"
-    fi
-    if [ -d "$BUILD_DIR/target/linux/mediatek" ]; then
-        install -Dm755 "$BASE_PATH/patches/hnatusage" "$filogic_sbin_dir/cpuusage"
-    fi
+    # if [ -d "$BUILD_DIR/target/linux/qualcommax" ]; then
+    #     install -Dm755 "$BASE_PATH/patches/cpuusage" "$qualcommax_sbin_dir/cpuusage"
+    # fi
+    # if [ -d "$BUILD_DIR/target/linux/mediatek" ]; then
+    #     install -Dm755 "$BASE_PATH/patches/hnatusage" "$filogic_sbin_dir/cpuusage"
+    # fi
 }
 
 
