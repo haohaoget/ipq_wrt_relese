@@ -164,6 +164,64 @@ fix_easytier_lua() {
 }
 
 
+fix_easytier_firewall() {
+    local package_dir="$(get_custom_feed_package_dir)/luci-app-easytier"
+    local helper_path="$BASE_PATH/patches/easytier-no-offload.sh"
+    local init_path=""
+    local candidate
+    local patched_init
+
+    # small-package 保存整个上游仓库，官方单包目录则直接包含 root/。
+    for candidate in "$package_dir" "$package_dir/luci-app-easytier"; do
+        if [ -f "$candidate/root/etc/init.d/easytier" ]; then
+            init_path="$candidate/root/etc/init.d/easytier"
+            package_dir="$candidate"
+            break
+        fi
+    done
+
+    if [ -z "$init_path" ] || [ ! -f "$helper_path" ]; then
+        echo "错误：缺少 EasyTier 启动脚本或 PPE 防火墙修复脚本" >&2
+        return 1
+    fi
+
+    if ! grep -Fq '/bin/sh /usr/share/easytier/firewall-offload.sh start' "$init_path" || \
+       ! grep -Fq '/bin/sh /usr/share/easytier/firewall-offload.sh stop' "$init_path"; then
+        if grep -Fq '/bin/sh /usr/share/easytier/firewall-offload.sh' "$init_path"; then
+            echo "错误：EasyTier PPE 防火墙修复钩子不完整，请检查启动脚本" >&2
+            return 1
+        fi
+        if [ "$(grep -Ec '^start_service\(\)[[:space:]]*\{' "$init_path")" != "1" ] || \
+           [ "$(grep -Ec '^stop_service\(\)[[:space:]]*\{' "$init_path")" != "1" ]; then
+            echo "错误：EasyTier 启动/停止函数已变更，无法安装 PPE 防火墙修复" >&2
+            return 1
+        fi
+
+        patched_init=$(mktemp) || return 1
+        if ! awk '
+            { print }
+            /^start_service\(\)[[:space:]]*\{/ {
+                print "\t/bin/sh /usr/share/easytier/firewall-offload.sh start"
+            }
+            /^stop_service\(\)[[:space:]]*\{/ {
+                print "\t/bin/sh /usr/share/easytier/firewall-offload.sh stop"
+            }
+        ' "$init_path" >"$patched_init" || ! sh -n "$patched_init"; then
+            rm -f "$patched_init"
+            return 1
+        fi
+        if ! cat "$patched_init" >"$init_path"; then
+            rm -f "$patched_init"
+            return 1
+        fi
+        rm -f "$patched_init"
+    fi
+
+    install -Dm755 "$helper_path" "$package_dir/root/usr/share/easytier/firewall-offload.sh" || return 1
+    echo "已安装 EasyTier PPE 防火墙修复：$package_dir"
+}
+
+
 fix_openssl_ktls() {
     local config_in="$BUILD_DIR/package/libs/openssl/Config.in"
     if [ -f "$config_in" ]; then

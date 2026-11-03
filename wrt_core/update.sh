@@ -137,6 +137,7 @@ stage_post_install_package_fixes() {
     docker_stack_sync_nftables_compat "$BUILD_DIR" "0"
     fix_cups_libcups_avahi_depends
     fix_easytier_lua
+    fix_easytier_firewall
     # update_adguardhome
     update_script_priority
     update_geoip
