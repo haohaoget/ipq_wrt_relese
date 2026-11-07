@@ -42,7 +42,7 @@ set_qualcommax_nowifi() {
 
 
 fix_default_set() {
-    # 注入默认主题、系统设置和目标平台通用补丁。
+    # 替换默认主题依赖，并注入系统设置和目标平台通用补丁。
     if [ -d "$BUILD_DIR/feeds/luci/collections/" ]; then
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-design/luci-theme-$THEME_SET/g" {} \;
         find "$BUILD_DIR/feeds/luci/collections/" -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-$THEME_SET/g" {} \;
